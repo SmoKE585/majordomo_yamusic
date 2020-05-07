@@ -1,0 +1,70 @@
+<nav class="navbar navbar-default">
+	<div class="container-fluid">
+	  <div class="navbar-header" style="border-right: 1px solid #e7e7e7;">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+			<span class="sr-only">Toggle navigation</span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="?"><img src="/img/modules/yamusic.png" style="width: 20px;"> Яндекс.Музыка</a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav navbar-right">
+				<li style="border-right: 1px solid #e7e7e7;"><a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=6964#p114913" target="_blank" style="color: #ff4f67;"><img src="/templates/webcam_recorder/img/like.png" style="width: 19px;vertical-align: sub;"> Нравится? Ставь лайк!</a></li>
+				<li><a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=6964#p114913" target="_blank"><i class="las la-comment-dots" style="font-size: 1.9rem;vertical-align: top;"></i> Обсуждение на форуме</a></li>
+			</ul>
+		</div>
+	</div>
+</nav>
+[#if ISUSER == 1#]
+	<table class="table table-stripped" style="font-size: 1.2rem;">
+		<tbody>
+			[#begin MUSICLIST#]
+				<tr style="border: 1px solid #e7e7e7;border-radius: 10px;">
+					<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]"></td>
+					<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#]</td>
+					<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#NAMESONG#]</td>
+					<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
+					<td valign="middle" style="border-top: 0px;vertical-align: middle;"><audio style="height: 30px;" controls src="[#LINK#]"></audio></td>
+					
+				</tr>
+			[#end MUSICLIST#]
+		</tbody>
+	</table>
+[#else#]
+<div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
+	<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
+		<img src="/templates/yamusic/img/giphy.gif" style="width: 200px;">
+		<h4 style="margin: 0px;">Привет! Давай настроим модуль!</h4>
+		<br>
+		<p>Модуль позволяет подключиться к вашему аккаунту в Яндекс.Музыки и воспроизводить их из ваших сцен.<br>
+		Логины и пароли остаются только у Вас и никуда не передаются, доступ к сервису через токен.<br>
+		Логин и пароль нужен только для получения токена.<br>
+		<b style="color: red;">Важно!</b> Яндекс может прислать Вам уведомление о подозрительном входе!
+		</p>
+		<br>
+		<button type="button" class="btn btn-success btn-lg" onclick="$(this).hide();$('#loginForm').show();"><i class="las la-user-tie"></i> Авторизоваться</button>
+		<div class="row" style="margin-top: 15px;margin-bottom: 35px;display: none;" id="loginForm">
+			<div class="col-md-4 col-md-offset-4 text-left" style="border: 1px solid gray;border-radius: 10px;">
+				<form action="?" method="post" enctype="multipart/form-data">
+					<label style="margin-top: 15px;">Логин от Яндекс.Музыки</label>
+					<input type="text" class="form-control" style="outline: none;border-radius: 5px;" name="loginYandex" placeholder="Логин, без @yandex.ru" value="">
+					<label style="margin-top: 15px;">Пароль от Яндекс.Музыки</label>
+					<input type="password" class="form-control" style="outline: none;border-radius: 5px;" name="passwordYandex" placeholder="" value="">
+					<center style="margin-top: 20px;margin-bottom: 20px;">
+						<button type="submit" class="btn btn-success"><i class="las la-user-tie"></i> Авторизоваться</button>
+					</center>
+					
+					<input type="hidden" name="mode" value="auth">
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+[#endif#]
+<div class="row" style="margin-top: 40px;">
+	<div class="col-md-12" style="text-align: center;border-top: 1px solid #e7e7e7;padding-top: 15px;font-size: 1rem;color: gray;">
+		Версия модуля: <i class="las la-code-branch" style="vertical-align: middle;"></i> v.[#VERSION_MODULE#] | Проект доступен на <a href="https://github.com/SmoKE585/majordomo_webcam_recorder" target="_blank"><i class="lab la-github"></i> GitHub</a> | Автор: Александр SmoKE xD Аболмасов
+	</div>
+</div>

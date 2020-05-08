@@ -18,85 +18,36 @@
 	</div>
 </nav>
 [#if ISUSER == 1#]
-<div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
-	<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12">
-		<ul class="list-group">
-			<li class="list-group-item">
-				<span class="badge">[#ACCOUNT_UID#]</span>
-				UID
-			</li>
-			<li class="list-group-item">
-				<span class="badge">[#ACCOUNT_LOGIN#]</span>
-				Логин
-			</li>
-			<li class="list-group-item">
-				<span class="badge">[#ACCOUNT_NAME#]</span>
-				Имя
-			</li>
-			<li class="list-group-item">
-				<span class="badge">[#ACCOUNT_REGDATE#]</span>
-				Дата регистрации
-			</li>
-			<li class="list-group-item">
-				<span class="badge" style="background-color: white;">[#ACCOUNT_AVAIL#]</span>
-				Статус
-			</li>
-		</ul>
-		<hr>
-		<h4>Мои плейлисты</h4>
-		<div class="list-group" style="margin-bottom: 10px;">
-			<a href="?mode=loadPlayList&playlistID=-1" class="list-group-item active" style="padding: 5px;min-height: 62px;">
-				<div style="float: left;"><img src="https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png" style="width: 50px;"></div>
-				<div style="padding-left: 60px;margin-top: 7px;">
-					<div class="list-group-item-heading" style="margin-bottom: 0px;">Мне нравится</div>
-					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;">Сформирован по вашим лайкам</p>
-				</div>
-			</a>
-		</div>
-		[#begin PLAYLIST#]
-		<div class="list-group" style="margin-bottom: 10px;">
-			<a href="?mode=loadPlayList&playlistID=[#PLAYLISTID#]" class="list-group-item active" style="padding: 5px;min-height: 62px;">
-				<div style="float: left;"><img src="[#COVER#]" style="width: 50px;"></div>
-				<div style="padding-left: 60px;margin-top: 7px;">
-					<div class="list-group-item-heading" style="margin-bottom: 0px;">[#TITLE#]</div>
-					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;">Создан [#CREATED#] / Длительность [#DURATION#]</p>
-				</div>
-			</a>
-		</div>
-		[#end PLAYLIST#]
-	</div>
-	<div class="col-xl-9 col-lg-9 col-md-9 col-sm-12 col-12">
-		<table class="table table-stripped" style="font-size: 1.2rem;">
-			<tbody>
-				[#begin MUSICLIST#]
-					<tr style="border: 1px solid #e7e7e7;border-radius: 10px;">
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]"></td>
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#]</td>
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#NAMESONG#]</td>
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><audio style="height: 30px;" controls src="[#LINK#]"></audio></td>
-						
-					</tr>
-				[#end MUSICLIST#]
-			</tbody>
-		</table>
-	</div>
-</div>
+	[#inc action_admin_success.html#]
 [#else#]
 <div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
 	<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
-		<img src="/templates/yamusic/img/giphy.gif" style="width: 200px;">
-		<h4 style="margin: 0px;">Привет! Давай настроим модуль!</h4>
+		<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Yandex_Music_Russian_logo.svg/1200px-Yandex_Music_Russian_logo.svg.png" style="width: 400px;">
+		<h4 style="margin: 0px;font-weight:bold">Привет! Давай настроим модуль!</h4>
 		<br>
 		<p>Модуль позволяет подключиться к вашему аккаунту в Яндекс.Музыки и воспроизводить их из ваших сцен.<br>
 		Логины и пароли остаются только у Вас и никуда не передаются, доступ к сервису через токен.<br>
 		Логин и пароль нужен только для получения токена.<br>
 		<b style="color: red;">Важно!</b> Яндекс может прислать Вам уведомление о подозрительном входе!
 		</p>
+		[#if ERRORSUBSCRIBE == 1#]
+			<div class="alert alert-warning text-center" role="alert" style="margin-top: 50px;margin-bottom: 0px;color: white;font-size: 2rem;border-radius: 30px;background: linear-gradient(60deg, #5340e7, #7259c1, #8f7099, #aa8774, #c79e4c, #d8ab36);">
+				Проблема с вашей подпиской =( Мы обнаружили, что у Вас не активна подписка на Яндекс.Плюс.<br>
+				Работа модуля без подписки невозможна.
+				<div class="text-center" style="margin-top: 15px">
+					<a href="https://plus.yandex.ru/" target="_blank" style="padding: 20px;color: white;background: #2400a4;font-size: 2rem;border-radius: 100px 20px 20px 100px;text-decoration: none;"><img src="https://spasibosberbank.ru/storage/yandexplus_logo_pkl.png" style="width: 100px;"> Купить подписку Я.Плюс</a>
+				</div>
+			</div>
+		[#endif#]
 		<br>
-		<button type="button" class="btn btn-success btn-lg" onclick="$(this).hide();$('#loginForm').show();"><i class="las la-user-tie"></i> Авторизоваться</button>
-		<div class="row" style="margin-top: 15px;margin-bottom: 35px;display: none;" id="loginForm">
+		[#if ERRORAUTH!= 1#]<button type="button" class="btn btn-success btn-lg" onclick="$(this).hide();$('#loginForm').show();"><i class="las la-user-tie"></i> Авторизоваться</button>[#endif#]
+		<div class="row" style="margin-top: 15px;margin-bottom: 35px;[#if ERRORAUTH != 1#]display: none;[#endif#]" id="loginForm">
 			<div class="col-md-4 col-md-offset-4 text-left" style="border: 1px solid gray;border-radius: 10px;">
+				[#if ERRORAUTH == 1#]
+					<div class="alert alert-danger" role="alert" style="margin-top: 10px;margin-bottom: 0px;">
+						Ошибка авторизации! Введен неверный логин или пароль...
+					</div>
+				[#endif#]
 				<form action="?" method="post" enctype="multipart/form-data">
 					<label style="margin-top: 15px;">Логин от Яндекс.Музыки</label>
 					<input type="text" class="form-control" style="outline: none;border-radius: 5px;" name="loginYandex" placeholder="Логин, без @yandex.ru" value="">

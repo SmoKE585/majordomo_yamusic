@@ -1,0 +1,82 @@
+<div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
+	<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12">
+		<h4>Мой аккаунт</h4>
+		<ul class="list-group">
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_ID#]</span> <span class="badge">[#ACCOUNT_UID#]</span>
+				UID/ID
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_LOGIN#]</span>
+				Логин пользователя
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_NAME#]</span>
+				Полное имя
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_REGDATE#]</span>
+				Дата регистрации
+			</li>
+			<li class="list-group-item">
+				<span class="badge" style="background-color: white;">[#ACCOUNT_AVAIL#]</span>
+				Статус подписки
+			</li>
+		</ul>
+		<div class="text-center"><button type="button" class="btn btn-default">Сменить пользователя</button></div>
+		<hr>
+		<h4>Мои плейлисты ([#TOTAL_PLAYLIST#] шт.)</h4>
+		<!---
+		<div class="list-group" style="margin-bottom: 10px;">
+			<a href="?mode=loadPlayList&playlistID=-1" class="list-group-item active" style="padding: 5px;min-height: 62px;">
+				<div style="float: left;"><img src="https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png" style="width: 50px;"></div>
+				<div style="padding-left: 60px;margin-top: 7px;">
+					<div class="list-group-item-heading" style="margin-bottom: 0px;">Мне нравится</div>
+					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;">Сформирован по вашим лайкам</p>
+				</div>
+			</a>
+		</div>--->
+		<script>
+		$(function() {
+			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #d6ecff;');
+		});
+		</script>
+		[#begin PLAYLIST#]
+		<div class="list-group" style="margin-bottom: 10px;">
+			<a href="?mode=loadPlayList&playlistID=[#PLAYLISTID#]" id="playlistList_[#PLAYLISTID#]" class="list-group-item active" style="padding: 5px;min-height: 62px;background-color: #ffffff;">
+				<div style="float: left;"><img src="[#COVER#]" style="width: 50px;"></div>
+				<div style="padding-left: 60px;margin-top: 7px;">
+					<div class="list-group-item-heading" style="margin-bottom: 0px;color: #333;">[#TITLE#]</div>
+					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;color: #333;">Создан [#CREATED#] / Длительность [#DURATION#]</p>
+				</div>
+			</a>
+		</div>
+		[#end PLAYLIST#]
+		<div class="text-center">
+			<form action="?" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="mode" value="reloadplaylist">
+				<button type="submit" class="btn btn-default">Обновить список плейлистов</button>
+			</form>
+		</div>
+	</div>
+	<div class="col-xl-5 col-lg-5 col-md-5 col-sm-12 col-12">
+		<h4>Треки из плейлиста <b>[#PLAYLIST_CURRENT_NAME#]</b> ([#TOTAL_PLAYLIST_TRACKS#] треков)</h4>
+		<table class="table table-stripped" style="font-size: 1.2rem;">
+			<tbody>
+				[#begin PLAYLIST_MUSICLIST#]
+					<tr style="border: 1px solid #e7e7e7;border-radius: 10px;">
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]"></td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#]</td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#NAMESONG#]</td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><audio style="height: 30px;" controls src="[#LINK#]"></audio></td>
+						
+					</tr>
+				[#end PLAYLIST_MUSICLIST#]
+			</tbody>
+		</table>
+	</div>
+	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12">
+		
+	</div>
+</div>

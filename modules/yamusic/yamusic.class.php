@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '1.1 Beta';
+		$this->version = '2.0 Beta';
 		$this->checkInstalled();
 	}
 
@@ -74,7 +74,121 @@ class yamusic extends module {
 		$p=new parser(DIR_TEMPLATES.$this->name."/".$this->name.".html", $this->data, $this);
 		$this->result=$p->result;
 	}
-
+	
+	function loadUserInfo($id) {
+		//Выгрузим из БД нужного юзера
+		$selectUser = SQLSelectOne("SELECT * FROM `yamusic_users` WHERE `SELECTED` = 1 AND `ID` = '".$id."' ORDER BY `ID` DESC LIMIT 1");
+		
+		return $selectUser;
+	}
+	
+	function loadAllUser() {
+		//Выгрузим из БД нужного юзера
+		$selectUser = SQLSelect("SELECT * FROM `yamusic_users` ORDER BY `ID` DESC LIMIT 5");
+		
+		return $selectUser;
+	}
+	
+	function loadUserPlaylist($userToken, $userUID) {
+		//Загрузка плейлистов юзера
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$loadPlaylist = new Client($userToken);
+		$loadPlaylist = $loadPlaylist->usersPlaylistsList();
+		
+		//Запишем в БД
+		foreach($loadPlaylist as $value) {
+			//Генерим обложку
+			$coverLoad = file_get_contents('https://avatars.yandex.net'.$value->cover->dir.'50x50');
+			if($coverLoad) {
+				$coverLoad = 'https://avatars.yandex.net'.$value->cover->dir.'50x50';
+			} else {
+				$coverLoad = '/img/modules/yamusic.png';
+			}
+			
+			$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".dbSafe($value->kind)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
+			
+			if($selectIfDouble['PLAYLISTID'] != $value->kind) {
+				SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','".dbSafe($value->kind)."','".dbSafe($value->title)."','".dbSafe($value->visibility)."','".dbSafe(date('d.m.Y H:i:s', strtotime($value->created)))."','".dbSafe(date('H:m:i', $value->durationMs*1000))."','".dbSafe($coverLoad)."');");
+			}
+		}
+		
+		//Создадим плейлист МНЕ НРАВИТСЯ
+		$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '-1' ORDER BY `ID` DESC LIMIT 1");
+		if($selectIfDouble['PLAYLISTID'] != '-1') {
+			SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','-1','Мне нравится','private','".dbSafe(date('d.m.Y H:i:s', time()))."','','https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png');");
+		}
+		
+		$this->redirect("?");
+	}
+	
+	function loadUserMusic($userToken, $userUID, $playlistID) {
+		//Загрузка плейлистов юзера
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		
+		//Загрузка треков для плейлиста МНЕ НРАВИТСЯ
+		if($playlistID == '-1') {
+			$likesTrack = $newDOM->getLikesTracks();
+			
+			foreach($likesTrack->tracks as $key => $value) {
+				//Получим ID треков
+				$idTrack = $value->id;
+				//Получим обложку и название
+				$getCover = $newDOM->tracks($idTrack);
+				
+				//Если нет инфы о треке - пропускае, он удален
+				if(!$getCover[0]->durationMs) continue;
+				
+				//Генерируем массив песен
+				$cover = mb_strlen($getCover[0]->coverUri)-2;
+				$cover = substr($getCover[0]->coverUri, 0, $cover);
+				
+				$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
+				
+				if($selectIfDouble['SONGID'] != $idTrack) {
+					SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."50x50','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+				}
+			}
+			
+			
+		} else {
+			$loadUserMusic = $newDOM->usersPlaylists($playlistID);
+			$loadUserMusic = $loadUserMusic->result[0]->tracks;
+					
+			foreach($loadUserMusic as $key => $value) {
+				//Получим ID треков
+				$idTrack = $value->id;
+				//Получим обложку и название
+				$getCover = $newDOM->tracks($idTrack);
+				
+				//Если нет инфы о треке - пропускае, он удален
+				if(!$getCover[0]->durationMs) continue;
+				
+				//Генерируем массив песен
+				$cover = mb_strlen($getCover[0]->coverUri)-2;
+				$cover = substr($getCover[0]->coverUri, 0, $cover);
+				
+				$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
+				
+				if($selectIfDouble['SONGID'] != $idTrack) {
+					SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."50x50','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+				}
+			}
+		}
+		
+		$this->redirect("?mode=loadPlayList&playlistID=".$playlistID);
+	}
+	
+	function getDirectLink($songID, $userToken) {
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		
+		$link = $newDOM->tracksDownloadInfo($songID, true);
+		$link = $link[0]->directLink;
+		
+		return $link;
+	}
+	
 	function admin(&$out) {
 		$this->getConfig();
 		
@@ -86,7 +200,7 @@ class yamusic extends module {
 			$this->passwordYandex = strip_tags(trim($passwordYandex));
 			
 			if(!empty($this->loginYandex) && !empty($this->passwordYandex)) {
-				require(DIR_MODULES.$this->name.'/client.php');
+				require_once(DIR_MODULES.$this->name.'/client.php');
 				
 				//Создаем объект
 				$yamusicBase = new Client();
@@ -94,156 +208,107 @@ class yamusic extends module {
 				//Запрос на получение токена
 				$getToken = $yamusicBase->fromCredentials($this->loginYandex, $this->passwordYandex, false);
 				
-				//Выгрузим инфо о аккаунте
-				$accountInfo = $music->getAccount();
-				
-				SQLExec("INSERT INTO `yamusic_users` (`USERNAME`,`TOKEN`,`SELECTED`,`FULLNAME`,`REGDATE`,`STATUS`,`UID`,`ADDTIME`) VALUES ('".$this->loginYandex."','".$getToken."','0','".$accountInfo->fullName."','".date('d.m.Y H:i:s', strtotime($accountInfo->registeredAt))."','".$accountInfo->serviceAvailable."','".$accountInfo->uid."','".time()."');");
-				
-				$this->redirect("?");
+				if($getToken != '') {
+					//Выгрузим инфо о аккаунте
+					$accountInfo = new Client($getToken);
+					$accountInfo = $accountInfo->getAccount();
+					
+					if($accountInfo->serviceAvailable == true) {
+						SQLExec("INSERT INTO `yamusic_users` (`USERNAME`,`TOKEN`,`SELECTED`,`FULLNAME`,`REGDATE`,`STATUS`,`UID`,`ADDTIME`) VALUES ('".$this->loginYandex."','".$getToken."','1','".$accountInfo->fullName."','".date('d.m.Y H:i:s', strtotime($accountInfo->registeredAt))."','".$accountInfo->serviceAvailable."','".$accountInfo->uid."','".time()."');");
+					
+						$this->redirect("?");
+					} else {
+						$out['ERRORSUBSCRIBE'] = 1;
+					}
+				} else {
+					$out['ERRORAUTH'] = 1;
+				}
 			}
 		}
 		
-		$selectUser = SQLSelectOne("SELECT * FROM `yamusic_users` ORDER BY `ID` DESC LIMIT 1");
-		
-		if($selectUser['TOKEN'] != '') {
+		//Выгрузим всех юзеров
+		$loadAllUsers = $this->loadAllUser();
+		if($loadAllUsers) {
+			//Найдем основного юзера
+			foreach($loadAllUsers as $value) {
+				if($value['SELECTED'] == 1) {
+					$mainUser = $value['ID'];
+					break;
+				}
+			}
+			//Выгрузим инфо о основном юзере
+			$loadUserInfo = $this->loadUserInfo($mainUser);
+			//Отдаем в выдачу
+			$out['ACCOUNT_UID'] = $loadUserInfo['UID'];
+			$out['ACCOUNT_ID'] = $loadUserInfo['ID'];
+			$out['ACCOUNT_LOGIN'] = $loadUserInfo['USERNAME'];
+			$out['ACCOUNT_NAME'] = $loadUserInfo['FULLNAME'];
+			$out['ACCOUNT_REGDATE'] = $loadUserInfo['REGDATE'];
+			($loadUserInfo['STATUS'] == 1) ? $out['ACCOUNT_AVAIL'] = '<span style="color: green">Подписка активна</span>' : $out['ACCOUNT_AVAIL'] = '<span style="color: red">Подписка НЕ активна</span>';
+			
+			//Метка, что юзер есть в БД
 			$out['ISUSER'] = 1;
-			//Подключим функции
-			require(DIR_MODULES.$this->name.'/client.php');
-			$music = new Client($selectUser['TOKEN']);
 			
+			//Выгрузим из БД плейлисты
+			$selectPlaylist = SQLSelect("SELECT * FROM `yamusic_playlist` ORDER BY `PLAYLISTID` LIMIT 50");
 			
-			//Выгрузим инфо о аккаунте
-			$accountInfo = $music->getAccount();
-			$out['ACCOUNT_UID'] = $accountInfo->uid;
-			$out['ACCOUNT_LOGIN'] = $accountInfo->login;
-			$out['ACCOUNT_NAME'] = $accountInfo->fullName;
-			$out['ACCOUNT_REGDATE'] = date('d.m.Y H:i:s', strtotime($accountInfo->registeredAt));
-			($accountInfo->serviceAvailable == 1) ? $out['ACCOUNT_AVAIL'] = '<span style="color: green">Подписка активна</span>' : $out['ACCOUNT_AVAIL'] = '<span style="color: red">Подписка НЕ активна</span>';
-			
-			//Выгрузим плейлисты пользователя
-			$loadPlaylist = $music->usersPlaylistsList();
-			$countPlaylist = 0;
-			$playlist = [];
-			
-			foreach($loadPlaylist as $key => $value) {
-				$coverLoad = file_get_contents('https://avatars.yandex.net'.$value->cover->dir.'50x50');
-				if($coverLoad) {
-					$coverLoad = 'https://avatars.yandex.net'.$value->cover->dir.'50x50';
-				} else {
-					$coverLoad = '/img/modules/yamusic.png';
+			if($selectPlaylist[0]['PLAYLISTID']) {
+				//Выгрузим плейлисты пользователя
+				$countPlaylist = 0;		
+				foreach($selectPlaylist as $key => $value) {
+					//Счетчик
+					$countPlaylist++;
 				}
 				
-				$rec = [
-					'PLAYLISTID' => $value->kind,
-					'TITLE' => $value->title,
-					'VISIBILITY' => $value->visibility,
-					'CREATED' => date('d.m.Y H:i:s', strtotime($value->created)),
-					'DURATION' => date('H:m:i', $value->durationMs*1000),
-					'COVER' => $coverLoad,
-				];
+				//В выдачу
+				$out['PLAYLIST'] = $selectPlaylist;
+				$out['TOTAL_PLAYLIST'] = $countPlaylist;
 				
-				array_push($playlist, $rec);
-				
-				//Счетчик
-				$countPlaylist++;
+			} else {
+				//Плейлистов в БД нет, загружаем
+				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
 			}
 			
-			$out['PLAYLIST'] = $playlist;
+			//ЗАпрос на обновление плейлистов
+			if($this->mode == 'reloadplaylist') {
+				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+			}
 			
-			//Запрос на выгрузку музыки
-			if($this->mode == 'loadPlayList' && !empty($this->playlistID)) {
-				if($this->playlistID == '-1') {
-					//Генерим последние 10 треков из плейлиста Мне нравится			
-					//Узнаем сколько треков нужно пропустить
-					$skipTrack = 0;
-					//Лимит
-					$limitLoadTrack = 10;
-					//Получим грязный список треков
-					$likesTrack = $music->getLikesTracks();
-
-					//Заготовка для массива
-					$musicList = [];
-					//Циклом переберем первые 5 треков и отдадим браузеру (Ссылка действует 1 минуту)
-					$count = 0;
-					foreach($likesTrack->tracks as $key => $value) {
-						//if($key != $skipTrack) continue;
-						//Получим ID треков
-						$idTrack = $value->id;
-						//Получим обложку и название
-						$getCover = $music->tracks($idTrack);
+			if(($this->mode == 'loadPlayList' && !empty($this->playlistID)) || empty($this->mode)) {
+				if(empty($this->mode)) $this->playlistID = '-1';
+				$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' LIMIT 10");
+				$selectPlaylist = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."'");
+				
+				if($selectMusic[0]['SONGID']) {
+					//Выгрузим музыку пользователя
+					$countMusicList = 0;		
+					foreach($selectMusic as $key => $value) {
+						$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
 						
-						//Получим грязную ссылку
-						$link = $music->tracksDownloadInfo($idTrack, true);
-						$link = $link[0]->directLink;
-						//Генерируем массив песен
-						$cover = mb_strlen($getCover[0]->coverUri)-2;
-						$cover = substr($getCover[0]->coverUri, 0, $cover);
-						
-						$rec = [
-							'NAMESONG' => $getCover[0]->title,
-							'ARTISTS' => $getCover[0]->artists[0]->name,
-							'COVER' => 'https://'.$cover.'50x50',
-							'DURATION' => date('i:s', $getCover[0]->durationMs*1000).' мин.',
-							'LINK' => $link,
-						];
-						
-						array_push($musicList, $rec);
-
 						//Счетчик
-						$count++;
-						//if($count == $skipTrack) break;
-						if($count > $limitLoadTrack) break;
+						$countMusicList++;
+						//if($countMusicList >1) break;
 					}
+										
+					//В выдачу
+					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+					$out['PLAYLIST_CURRENT'] = $this->playlistID;
+					$out['PLAYLIST_CURRENT_NAME'] = $selectPlaylist['TITLE'];
+					$out['TOTAL_PLAYLIST_TRACKS'] = $countMusicList;
 					
-					$out['MUSICLIST'] = $musicList;
 				} else {
-					$loadPlayList = $music->usersPlaylists($this->playlistID);
-					$loadPlayList = $loadPlayList->result[0]->tracks;
-					
-					//Лимит
-					$limitLoadTrack = 10;
-					
-					//Заготовка для массива
-					$musicList = [];
-					
-					//Циклом переберем (Ссылка действует 1 минуту)
-					$count = 0;
-					foreach($loadPlayList as $key => $value) {
-						//if($key != $skipTrack) continue;
-						//Получим ID треков
-						$idTrack = $value->id;
-						//Получим обложку и название
-						$getCover = $music->tracks($idTrack);
-						
-						//Получим грязную ссылку
-						$link = $music->tracksDownloadInfo($idTrack, true);
-						$link = $link[0]->directLink;
-						//Генерируем массив песен
-						$cover = mb_strlen($getCover[0]->coverUri)-2;
-						$cover = substr($getCover[0]->coverUri, 0, $cover);
-						
-						$rec = [
-							'NAMESONG' => $getCover[0]->title,
-							'ARTISTS' => $getCover[0]->artists[0]->name,
-							'COVER' => 'https://'.$cover.'50x50',
-							'DURATION' => date('i:s', $getCover[0]->durationMs*1000).' мин.',
-							'LINK' => $link,
-						];
-						
-						array_push($musicList, $rec);
-
-						//Счетчик
-						$count++;
-						//if($count == $skipTrack) break;
-						if($count > $limitLoadTrack) break;
-					}
-					
-					$out['MUSICLIST'] = $musicList;
+					//Музыки загруженой нет, загружаем
+					$this->loadUserMusic($loadUserInfo['TOKEN'], $loadUserInfo['UID'], $this->playlistID);
 				}
 			}
+			
 		} else {
+			//Метка, что юзера НЕТ в БД
 			$out['ISUSER'] = 0;
 		}
+		
+		
+		
 		
 	}
 	
@@ -270,6 +335,25 @@ yamusic_users: REGDATE varchar(255) NOT NULL DEFAULT ''
 yamusic_users: STATUS varchar(255) NOT NULL DEFAULT ''
 yamusic_users: UID varchar(255) NOT NULL DEFAULT ''
 yamusic_users: ADDTIME varchar(255) NOT NULL DEFAULT ''
+
+yamusic_playlist: ID int(10) unsigned NOT NULL auto_increment
+yamusic_playlist: OWNER varchar(255) NOT NULL DEFAULT ''
+yamusic_playlist: PLAYLISTID varchar(255) NOT NULL DEFAULT ''
+yamusic_playlist: TITLE varchar(255) NOT NULL DEFAULT ''
+yamusic_playlist: VISIBILITY varchar(255) NOT NULL DEFAULT ''
+yamusic_playlist: CREATED varchar(255) NOT NULL DEFAULT ''
+yamusic_playlist: DURATION varchar(255) NOT NULL DEFAULT ''
+yamusic_playlist: COVER varchar(255) NOT NULL DEFAULT ''
+
+yamusic_music: ID int(10) unsigned NOT NULL auto_increment
+yamusic_music: SONGID varchar(255) NOT NULL DEFAULT ''
+yamusic_music: PLAYLISTID varchar(255) NOT NULL DEFAULT ''
+yamusic_music: OWNER varchar(255) NOT NULL DEFAULT ''
+yamusic_music: NAMESONG varchar(255) NOT NULL DEFAULT ''
+yamusic_music: ARTISTS varchar(255) NOT NULL DEFAULT ''
+yamusic_music: COVER varchar(255) NOT NULL DEFAULT ''
+yamusic_music: DURATION varchar(255) NOT NULL DEFAULT ''
+yamusic_music: ADDTIME varchar(255) NOT NULL DEFAULT ''
 	
 EOD;
 		parent::dbInstall($data);

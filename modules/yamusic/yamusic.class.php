@@ -94,13 +94,15 @@ class yamusic extends module {
 				//Запрос на получение токена
 				$getToken = $yamusicBase->fromCredentials($this->loginYandex, $this->passwordYandex, false);
 				
-				$rec['ID'] = '';
-				$rec['USERNAME'] = $this->loginYandex;
-				$rec['TOKEN'] = $getToken;
-				$rec['SELECTED'] = '0';
-				$rec['ADDTIME'] = time();
+				// $rec['ID'] = '';
+				// $rec['USERNAME'] = $this->loginYandex;
+				// $rec['TOKEN'] = $getToken;
+				// $rec['SELECTED'] = '0';
+				// $rec['ADDTIME'] = time();
 				
-				SQLInsert('yamusic_users', $rec);
+				// SQLInsert('yamusic_users', $rec);
+				
+				SQLExec("INSERT INTO `yamusic_users` ('USERNAME','TOKEN','SELECTED','ADDTIME') VALUES ('".$this->loginYandex."','".$getToken."','0','".time()."')");
 				
 				$this->redirect("?");
 			}

@@ -444,7 +444,7 @@ class Client {
         $url = $this->baseUrl."/users/$userId/playlists";
 
         $data = array(
-            'kind' => $kind
+            'kinds' => $kind
         );
 
         $response = json_decode($this->post($url, $data));

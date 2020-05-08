@@ -11,27 +11,77 @@
 		</div>
 		<div id="navbar" class="navbar-collapse collapse">
 			<ul class="nav navbar-nav navbar-right">
-				<li style="border-right: 1px solid #e7e7e7;"><a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=7103" target="_blank" style="color: #ff4f67;"><img src="/templates/webcam_recorder/img/like.png" style="width: 19px;vertical-align: sub;"> Нравится? Ставь лайк!</a></li>
-				<li><a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=7103" target="_blank"><i class="las la-comment-dots" style="font-size: 1.9rem;vertical-align: top;"></i> Обсуждение на форуме</a></li>
+				<li style="border-right: 1px solid #e7e7e7;"><a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=6964#p114913" target="_blank" style="color: #ff4f67;"><img src="/templates/webcam_recorder/img/like.png" style="width: 19px;vertical-align: sub;"> Нравится? Ставь лайк!</a></li>
+				<li><a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=6964#p114913" target="_blank"><i class="las la-comment-dots" style="font-size: 1.9rem;vertical-align: top;"></i> Обсуждение на форуме</a></li>
 			</ul>
 		</div>
 	</div>
 </nav>
 [#if ISUSER == 1#]
-	<table class="table table-stripped" style="font-size: 1.2rem;">
-		<tbody>
-			[#begin MUSICLIST#]
-				<tr style="border: 1px solid #e7e7e7;border-radius: 10px;">
-					<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]"></td>
-					<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#]</td>
-					<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#NAMESONG#]</td>
-					<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
-					<td valign="middle" style="border-top: 0px;vertical-align: middle;"><audio style="height: 30px;" controls src="[#LINK#]"></audio></td>
-					
-				</tr>
-			[#end MUSICLIST#]
-		</tbody>
-	</table>
+<div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
+	<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12">
+		<ul class="list-group">
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_UID#]</span>
+				UID
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_LOGIN#]</span>
+				Логин
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_NAME#]</span>
+				Имя
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_REGDATE#]</span>
+				Дата регистрации
+			</li>
+			<li class="list-group-item">
+				<span class="badge" style="background-color: white;">[#ACCOUNT_AVAIL#]</span>
+				Статус
+			</li>
+		</ul>
+		<hr>
+		<h4>Мои плейлисты</h4>
+		<div class="list-group" style="margin-bottom: 10px;">
+			<a href="?mode=loadPlayList&playlistID=-1" class="list-group-item active" style="padding: 5px;min-height: 62px;">
+				<div style="float: left;"><img src="https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png" style="width: 50px;"></div>
+				<div style="padding-left: 60px;margin-top: 7px;">
+					<div class="list-group-item-heading" style="margin-bottom: 0px;">Мне нравится</div>
+					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;">Сформирован по вашим лайкам</p>
+				</div>
+			</a>
+		</div>
+		[#begin PLAYLIST#]
+		<div class="list-group" style="margin-bottom: 10px;">
+			<a href="?mode=loadPlayList&playlistID=[#PLAYLISTID#]" class="list-group-item active" style="padding: 5px;min-height: 62px;">
+				<div style="float: left;"><img src="[#COVER#]" style="width: 50px;"></div>
+				<div style="padding-left: 60px;margin-top: 7px;">
+					<div class="list-group-item-heading" style="margin-bottom: 0px;">[#TITLE#]</div>
+					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;">Создан [#CREATED#] / Длительность [#DURATION#]</p>
+				</div>
+			</a>
+		</div>
+		[#end PLAYLIST#]
+	</div>
+	<div class="col-xl-9 col-lg-9 col-md-9 col-sm-12 col-12">
+		<table class="table table-stripped" style="font-size: 1.2rem;">
+			<tbody>
+				[#begin MUSICLIST#]
+					<tr style="border: 1px solid #e7e7e7;border-radius: 10px;">
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]"></td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#]</td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#NAMESONG#]</td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><audio style="height: 30px;" controls src="[#LINK#]"></audio></td>
+						
+					</tr>
+				[#end MUSICLIST#]
+			</tbody>
+		</table>
+	</div>
+</div>
 [#else#]
 <div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
 	<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">

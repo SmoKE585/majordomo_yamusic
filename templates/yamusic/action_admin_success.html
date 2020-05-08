@@ -37,6 +37,111 @@
 			</a>
 		</div>--->
 		<script>
+		function startPlayMusic(playlist, owner, songID = '', count = '') {		
+			//Получим список треков
+			$.getJSON({
+				url: '/modules/yamusic/json.php?mode=generate&songID=' + songID + '&playlist=' + playlist + '&count=' + count + '&owner=' + owner,
+				success: function(responce) {
+					$('.clearBottonPause').hide();
+					$('.clearBottonPlay').show();
+					//Вставляем ссылку
+					$('#musicPlayer').attr('src', responce[0].LINK);
+					console.log(responce[0].LINK);
+					//Инфо о треке
+					$('#songName').show();
+					$('#songName').html(responce[0].NAMESONG);
+					$('#artistsName').show();
+					$('#artistsName').html(responce[0].ARTISTS);
+					$('#coverSong').attr('src', responce[0].COVER);
+					//Меняем кнопки
+					$('#startPlayMusic').hide();
+					$('#pausePlayMusic').show();
+					$('#startPlayMusic_'+songID).hide();
+					$('#pausePlayMusic_'+songID).show();
+					//Воспроизводим
+					$('#musicPlayer').get(0).play();
+					
+					
+					//Вешаем обработчик, чтобы понять, что трек закончился
+					//document.getElementById('musicPlayer').addEventListener('ended',myHandler,false);
+					//function myHandler(e) {
+					//	console.log(e);
+					//	nextPlayMusic();
+					//}
+				},
+			});
+			
+		}
+		
+		function nextPlayMusic2() {
+			//Чья музыка
+			whoMusic = Number($('#whoMusic').text());
+			
+			//Если включен шейк - то мешаем
+			if(Number($('#shakeMusicTrack').text()) == 1) {
+				if(whoMusic == 2) {
+					$('#countMusicTrack').text(Math.floor(Math.random() * (383 - 0)) + 0);
+				} else if(whoMusic == 1) {
+					$('#countMusicTrack').text(Math.floor(Math.random() * (279 - 0)) + 0);
+				}
+				//Сколько треков скипать
+				skipTrack = Number($('#countMusicTrack').text());
+			} else {
+				//Сколько треков скипать
+				skipTrack = Number($('#countMusicTrack').text())+1;
+			}
+			
+			//Изменим счетчик треков
+			$('#countMusicTrack').text(skipTrack);
+			$('#whoMusic').text(whoMusic);
+			if(skipTrack >= 0) $('#prevTrack').show();
+			$('#nextTrack').attr('style', 'animation: slideOutRight;animation-duration: 1s;font-size: 3.6rem;color: #5d5386;margin-left: 15px;');
+			startPlayMusic();
+		}
+		
+		function prevPlayMusic2() {
+			//Чья музыка
+			whoMusic = Number($('#whoMusic').text());
+			
+			//Если включен шейк - то мешаем
+			if(Number($('#shakeMusicTrack').text()) == 1) {
+				if(whoMusic == 2) {
+					$('#countMusicTrack').text(Math.floor(Math.random() * (383 - 0)) + 0);
+				} else if(whoMusic == 1) {
+					$('#countMusicTrack').text(Math.floor(Math.random() * (279 - 0)) + 0);
+				}
+				//Сколько треков скипать
+				skipTrack = Number($('#countMusicTrack').text());
+			} else {
+				//Сколько треков скипать
+				skipTrack = Number($('#countMusicTrack').text())-1;
+			}
+			
+			//Изменим счетчик треков
+			$('#countMusicTrack').text(skipTrack);
+			$('#whoMusic').text(whoMusic);
+			if(skipTrack <= 0) $('#prevTrack').hide();
+			$('#prevTrack').attr('style', 'animation: slideOutLeft;animation-duration: 1s;font-size: 3.6rem;color: #5d5386;margin-right: 15px;');	
+			if(skipTrack <= 0) skipTrack = 0;
+			startPlayMusic();
+		}
+		
+		function pausePlayMusic() {
+			$('.clearBottonPause').hide();
+			$('.clearBottonPlay').show();
+			//Инфо о треке
+			$('#songName').hide();
+			$('#artistsName').hide();
+			$('#coverSong').attr('src', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Yandex_Music_Russian_logo.svg/1200px-Yandex_Music_Russian_logo.svg.png');
+			//Меняем кнопки
+			$('#startPlayMusic').show();
+			$('#pausePlayMusic').hide();
+
+			$('#musicPlayer').get(0).pause();
+			
+
+		}
+		
 		$(function() {
 			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #d6ecff;');
 		});
@@ -60,23 +165,39 @@
 		</div>
 	</div>
 	<div class="col-xl-5 col-lg-5 col-md-5 col-sm-12 col-12">
-		<h4>Треки из плейлиста <b>[#PLAYLIST_CURRENT_NAME#]</b> ([#TOTAL_PLAYLIST_TRACKS#] треков)</h4>
+		<h4>Треки из плейлиста <b>[#PLAYLIST_CURRENT_NAME#]</b> (Всего [#TOTAL_PLAYLIST_TRACKS#], показано [#TOTAL_PLAYLIST_SHOWTRACKS#])</h4>
 		<table class="table table-stripped" style="font-size: 1.2rem;">
 			<tbody>
 				[#begin PLAYLIST_MUSICLIST#]
-					<tr style="border: 1px solid #e7e7e7;border-radius: 10px;">
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]"></td>
+					<tr style="border: 1px solid #e7e7e7;border-radius: 10px;" id="trsong_[#SONGID#]">
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><img src="[#COVER#]" style="width: 50px;"></td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#NAMESONG#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
-						<td valign="middle" style="border-top: 0px;vertical-align: middle;"><audio style="height: 30px;" controls src="[#LINK#]"></audio></td>
+						<td valign="middle" style="border-top: 0px;vertical-align: middle;">
+							<i class="las la-play clearBottonPlay" style="font-size: 4rem;color: #5cb85c;" id="startPlayMusic_[#SONGID#]" onclick="startPlayMusic(<#PLAYLIST_CURRENT#>, [#OWNER#], [#SONGID#]);"></i>
+							<i class="las la-pause-circle clearBottonPause" style="font-size: 4rem;display:none;color: #b35b81;" id="pausePlayMusic_[#SONGID#]" onclick="pausePlayMusic();"></i>
+						</td>
 						
 					</tr>
 				[#end PLAYLIST_MUSICLIST#]
 			</tbody>
 		</table>
 	</div>
-	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12">
-		
+	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="border: 1px solid #e7e7e7;padding: 30px;">
+		<div id="cover" class="text-center">
+			<img id="coverSong" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Yandex_Music_Russian_logo.svg/1200px-Yandex_Music_Russian_logo.svg.png" style="width: 200px;">
+		</div>
+		<div id="nameTrack" class="text-center" style="margin-top: 10px;font-size: 2rem;">
+			<span id="artistsName"></span> - <b id="songName"></b>
+		</div>
+		<div id="buttonControl" class="text-center" style="margin-top: 30px;font-size: 2rem;">
+			<i class="las la-backward" style="font-size: 4rem;color: #5d5386;margin-right: 15px;" id="prevTrack" onClick="prevPlayMusic();"></i>
+			<i class="las la-play" style="font-size: 4rem;color: #5cb85c;" id="startPlayMusic" onclick="startPlayMusic();"></i>
+			<i class="las la-pause-circle" style="font-size: 4rem;display:none;color: #b35b81;" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
+			<i class="las la-forward" style="font-size: 4rem;color: #5d5386;margin-left: 15px;" id="nextTrack" onClick="nextPlayMusic();"></i>
+			<audio id="musicPlayer" src=""></audio>
+			<div id="hideBlockCurrentTrack" style="display:none;"></div>
+		</div>
 	</div>
 </div>

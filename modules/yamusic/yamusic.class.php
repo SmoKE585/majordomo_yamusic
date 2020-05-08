@@ -94,15 +94,10 @@ class yamusic extends module {
 				//Запрос на получение токена
 				$getToken = $yamusicBase->fromCredentials($this->loginYandex, $this->passwordYandex, false);
 				
-				// $rec['ID'] = '';
-				// $rec['USERNAME'] = $this->loginYandex;
-				// $rec['TOKEN'] = $getToken;
-				// $rec['SELECTED'] = '0';
-				// $rec['ADDTIME'] = time();
+				//Выгрузим инфо о аккаунте
+				$accountInfo = $music->getAccount();
 				
-				// SQLInsert('yamusic_users', $rec);
-				
-				SQLExec("INSERT INTO `yamusic_users` ('USERNAME','TOKEN','SELECTED','ADDTIME') VALUES ('".$this->loginYandex."','".$getToken."','0','".time()."')");
+				SQLExec("INSERT INTO `yamusic_users` (`USERNAME`,`TOKEN`,`SELECTED`,`FULLNAME`,`REGDATE`,`STATUS`,`UID`,`ADDTIME`) VALUES ('".$this->loginYandex."','".$getToken."','0','".$accountInfo->fullName."','".date('d.m.Y H:i:s', strtotime($accountInfo->registeredAt))."','".$accountInfo->serviceAvailable."','".$accountInfo->uid."','".time()."');");
 				
 				$this->redirect("?");
 			}
@@ -246,6 +241,8 @@ class yamusic extends module {
 					$out['MUSICLIST'] = $musicList;
 				}
 			}
+		} else {
+			$out['ISUSER'] = 0;
 		}
 		
 	}
@@ -268,6 +265,10 @@ yamusic_users: ID int(10) unsigned NOT NULL auto_increment
 yamusic_users: USERNAME varchar(100) NOT NULL DEFAULT ''
 yamusic_users: TOKEN varchar(255) NOT NULL DEFAULT ''
 yamusic_users: SELECTED varchar(2) NOT NULL DEFAULT ''
+yamusic_users: FULLNAME varchar(255) NOT NULL DEFAULT ''
+yamusic_users: REGDATE varchar(255) NOT NULL DEFAULT ''
+yamusic_users: STATUS varchar(255) NOT NULL DEFAULT ''
+yamusic_users: UID varchar(255) NOT NULL DEFAULT ''
 yamusic_users: ADDTIME varchar(255) NOT NULL DEFAULT ''
 	
 EOD;

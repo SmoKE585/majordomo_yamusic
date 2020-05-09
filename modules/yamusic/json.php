@@ -1,4 +1,7 @@
 <?php
+error_reporting(0); 
+
+
 chdir (dirname (__FILE__) . '/../../');
 
 include_once ('./config.php');

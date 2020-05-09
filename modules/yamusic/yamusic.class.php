@@ -124,7 +124,7 @@ class yamusic extends module {
 		//Запишем в БД
 		foreach($loadPlaylist as $value) {
 			//Генерим обложку
-			$coverLoad = file_get_contents('https://avatars.yandex.net'.$value->cover->dir.'200x200');
+			@$coverLoad = file_get_contents('https://avatars.yandex.net'.$value->cover->dir.'200x200');
 			if($coverLoad) {
 				$coverLoad = 'https://avatars.yandex.net'.$value->cover->dir.'200x200';
 			} else {

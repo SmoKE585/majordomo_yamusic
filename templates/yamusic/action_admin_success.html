@@ -23,7 +23,21 @@
 				Статус подписки
 			</li>
 		</ul>
-		<div class="text-center"><button type="button" class="btn btn-default">Сменить пользователя</button></div>
+		<div id="addNewUSer" style="display:none;">
+			<hr>
+			<form action="?" method="post" enctype="multipart/form-data">
+				<label>Логин от Яндекс.Музыки</label>
+				<input type="text" class="form-control" style="outline: none;border-radius: 5px;" name="loginYandex" placeholder="Логин, без @yandex.ru" value="">
+				<label style="margin-top: 15px;">Пароль от Яндекс.Музыки</label>
+				<input type="password" class="form-control" style="outline: none;border-radius: 5px;" name="passwordYandex" placeholder="" value="">
+				<center style="margin-top: 20px;margin-bottom: 20px;">
+					<button type="submit" class="btn btn-success"><i class="las la-user-tie"></i> Авторизоваться</button>
+				</center>
+				
+				<input type="hidden" name="mode" value="auth">
+			</form>
+		</div>
+		<div class="text-center"><a href="#" style="text-decoration: none;color: #333333;border: 1px solid #cccccc;padding: 10px;border-radius: 5px;" onclick="$(this).hide();$('#addNewUSer').show();">Добавить нового пользователя</a></div>
 		<hr>
 		<h4>Мои плейлисты ([#TOTAL_PLAYLIST#] шт.)</h4>
 		<!---

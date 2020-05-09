@@ -89,20 +89,27 @@ class yamusic extends module {
 		return $selectUser;
 	}
 	
-	function generateTrack($playlist, $owner, $songID = '', $count = 1) {
+	function generateTrack($playlist, $owner, $songID = '', $count = 1, $next = '', $prev = '') {
 		if(empty($playlist) || empty($owner)) die(); 
 		
 		if($count >= 11) $count = 10;
 		
+		if($next != '' && $prev == '') {
+			$nextTrack = "AND `ID` > '".$next."'";
+		}
+		
+		if($prev != '' && $next == '') {
+			$prevTrack = "AND `ID` < '".$prev."' ORDER BY `ID` DESC";
+		}
+		
 		if($songID == '') {
-			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlist."' AND `OWNER` = '".$owner."' LIMIT ".$count);
+			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlist."' AND `OWNER` = '".$owner."' ".$nextTrack." ".$prevTrack." LIMIT ".$count);
 		} else {
-			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlist."' AND `OWNER` = '".$owner."' AND `SONGID` = '".$songID."'");
+			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlist."' AND `OWNER` = '".$owner."' AND `SONGID` = '".$songID."' ".$nextTrack." ".$prevTrack);
 		}
 		
 		//Выгрузим музыку пользователя
 		//Заготовка для массива
-
 		foreach($selectMusic as $key => $value) {
 			$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
 			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
@@ -113,8 +120,8 @@ class yamusic extends module {
 	
 	function loadUserPlaylist($userToken, $userUID) {
 		//Очистим таблицы
-		SQLExec("TRUNCATE `yamusic_music`");
-		SQLExec("TRUNCATE `yamusic_playlist`");
+		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."'");
+		SQLExec("DELETE FROM `yamusic_playlist` WHERE `OWNER` = '".$userUID."'");
 		
 		//Загрузка плейлистов юзера
 		require_once(DIR_MODULES.$this->name.'/client.php');

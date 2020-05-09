@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '2.0 Beta';
+		$this->version = '2.1 Beta';
 		$this->checkInstalled();
 	}
 
@@ -90,6 +90,10 @@ class yamusic extends module {
 	}
 	
 	function generateTrack($playlist, $owner, $songID = '', $count = 1) {
+		if(empty($playlist) || empty($owner)) die(); 
+		
+		if($count >= 11) $count = 10;
+		
 		if($songID == '') {
 			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlist."' AND `OWNER` = '".$owner."' LIMIT ".$count);
 		} else {
@@ -101,6 +105,7 @@ class yamusic extends module {
 
 		foreach($selectMusic as $key => $value) {
 			$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
+			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
 		}
 		
 		return $selectMusic;
@@ -139,11 +144,11 @@ class yamusic extends module {
 			SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','-1','Мне нравится','private','".dbSafe(date('d.m.Y H:i:s', time()))."','','https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png');");
 		}
 		
-		$this->redirect("?");
+		//$this->redirect("?");
 	}
 	
 	function loadUserMusic($userToken, $userUID, $playlistID) {
-		//Загрузка плейлистов юзера
+		//Загрузка МУЗЫКИ юзера из плейлиста
 		require_once(DIR_MODULES.$this->name.'/client.php');
 		$newDOM = new Client($userToken);
 		
@@ -201,6 +206,7 @@ class yamusic extends module {
 	}
 	
 	function getDirectLink($songID, $userToken) {
+		//Функция выдача ссылок для json.php
 		require_once(DIR_MODULES.$this->name.'/client.php');
 		$newDOM = new Client($userToken);
 		
@@ -208,6 +214,25 @@ class yamusic extends module {
 		$link = $link[0]->directLink;
 		
 		return $link;
+	}
+	
+	function microTimeConvert($ms) {
+		//Функция переводит Яндекс.Милисекунды в нормальное время (Сделано через жопу)
+		$ms = floor($ms*1000/60);
+		$countSimbol = mb_strlen($ms);
+		
+		if($countSimbol == 7) {
+			$minutes = substr($ms, 0, 1);
+			$seconds = substr($ms, 1, 2);
+			if($seconds >= 60) {
+				$seconds = $seconds-60;
+				$minutes = $minutes+1;
+			}
+		}
+		if($minutes < 10) $minutes = '0'.$minutes;
+		if($seconds < 10) $seconds = '0'.$seconds;
+		
+		return $minutes.':'.$seconds;
 	}
 	
 	function admin(&$out) {
@@ -307,6 +332,7 @@ class yamusic extends module {
 					
 					foreach($selectMusic as $key => $value) {
 						//$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
 						$countShowMusicList++;
 						//Счетчик
 						$countMusicList++;
@@ -331,7 +357,7 @@ class yamusic extends module {
 		}
 		
 		
-		
+		$out['VERSION'] = $this->version;
 		
 	}
 	

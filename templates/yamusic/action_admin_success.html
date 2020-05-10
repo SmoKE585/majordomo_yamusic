@@ -4,7 +4,7 @@
 		<ul class="list-group">
 			<li class="list-group-item">
 				<span class="badge" style="background-color: white;padding: 0px;">
-					<select class="custom-select form-control" style="    width: 140px;height: 30px;padding: 0px;border: 1px solid #ddd;margin-top: -5px;font-size: 1rem;" onchange="sendValue('Bedroom_Radiator', 'humi_timetojob', $(this).val());">
+					<select class="custom-select form-control" style="width: 140px;height: 30px;padding: 0px;border: 1px solid #ddd;margin-top: -5px;font-size: 1rem;" onChange="changeUser($(this).val());">
 						<option>Выберите аккаунт</option>
 						[#begin ALLUSERLIST#]
 						<option value="[#ID#]">[#FULLNAME#] ([#USERNAME#])</option>
@@ -86,6 +86,38 @@
 			</a>
 		</div>--->
 		<script>
+		function sendOnTV(objProp) {
+			objPropSplit = objProp.split('.');
+			object = objPropSplit[0];
+			prop = objPropSplit[1];
+			playlist = '[#PLAYLIST_CURRENT#]';
+			owner = '[#ACCOUNT_UID#]';
+			
+			generateLink = 'browser|http://[#SERVER_IP#]/modules/yamusic/sendOnTV.php?playlist='+playlist+'&owner='+owner+'&shaffle=0';
+			
+			$.getJSON({
+				url: '/modules/yamusic/ajax.php?action=playOnTVPlaylist&obj='+object+'&prop='+prop+'&playlist='+playlist+'&owner='+owner,
+				success: function(responce) {
+					alert('Отправлено!');
+				},
+				error: function(responce) {
+					alert('Ошибка AJAX - sendOnTV');
+				}
+			});			
+		}
+		
+		function changeUser(newUser) {
+			$.getJSON({
+				url: '/modules/yamusic/ajax.php?action=changeUser&newuser='+newUser,
+				success: function(responce) {
+					window.location = "/admin.php?md=panel&inst=&action=yamusic";
+				},
+				error: function(responce) {
+					alert('Ошибка AJAX - changeUser');
+				}
+			});			
+		}
+		
 		function startPlayMusic(command) {
 			//Покажем лоадинг
 			$('#startPlayMusic').hide();
@@ -104,7 +136,7 @@
 			songID = '&songID='+$('#playSongCommand').text();
 			
 			//Плейлист по умолчанию
-			if(!playlist) playlist = '[#PLAYLIST_CURRENT#][#ACCOUNT_UID#]'; 
+			if(!playlist) playlist = '[#PLAYLIST_CURRENT#]'; 
 			if(!onwer) onwer = '[#ACCOUNT_UID#]'; 
 			
 			if(command == 'prev') {
@@ -166,7 +198,7 @@
 
 				},
 				error: function(responce) {
-					showNoty('error', 'Ошибка получения треков =( Музыки не будет...');
+					alert('Ошибка AJAX - startPlayMusic');
 				}
 			});			
 		}
@@ -246,6 +278,18 @@
 		</div>
 	</div>
 	<div class="col-xl-5 col-lg-5 col-md-5 col-sm-12 col-12">
+		[#if LOADPLAYLISTDONE == 1#]
+			<div class="text-center" style="margin-top: 20px">
+				<i class="las la-check-square" style="font-size: 10rem;color: green;"></i>
+				<div>
+					Ваши <b>плейлисты загружены</b>! Теперь при выборе плейлиста модуль скачает список треков этого плейлиста с сервера Яндекс и запишет их в базу данных. Скачивание списка музыки может занять много времени, т.к. модуль обрабатывает каждый трек.
+					<br>
+					В дальнейшем открытие скаченного плейлиста будет происходить быстро, т.к. все данные будут в вашей БД.
+					<br><br>
+					Выбирайте нужный плейлист и погнали! =)
+				</div>
+			</div>
+		[#else#]
 		<h4>Треки из плейлиста <b>[#PLAYLIST_CURRENT_NAME#]</b> (Всего [#TOTAL_PLAYLIST_TRACKS#], показано [#TOTAL_PLAYLIST_SHOWTRACKS#])</h4>
 		<table class="table table-stripped" style="font-size: 1.2rem;">
 			<tbody>
@@ -268,9 +312,24 @@
 				[#end PLAYLIST_MUSICLIST#]
 			</tbody>
 		</table>
+		[#endif#]
 	</div>
-	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="border: 1px solid #e7e7e7;padding: 30px;">
-		
+	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="">
+		<h4>Настройки и управление</h4>
+		<ul class="list-group">
+			<li class="list-group-item">
+				<span style="float: right;background-color: white;padding: 0px;color: black;">
+					<i class="las la-tv" style="font-size: 2rem;color: black;"></i>
+					<select style="vertical-align: text-bottom;" [#if ISHAVELGTV_FLAG != 1#]disabled[#endif#] onChange="sendOnTV($(this).val());">
+					[#if ISHAVELGTV_FLAG != 1#]<option>Нет доступных ТВ</option>[#else#]<option>На какой ТВ отправить?</option>[#endif#]
+					[#begin ISHAVELGTV_ARRAY#]
+						<option value="[#OBJ#].[#PROP#]">ТВ №[#DEVICE_ID#] -> [#OBJ#].[#PROP#]</option>
+					[#end ISHAVELGTV_ARRAY#]
+					</select>
+				</span>
+				Отправить на ТВ
+			</li>
+		</ul>
 	</div>
 	
 	<div id="backgroundCoverBlur" style=""></div>

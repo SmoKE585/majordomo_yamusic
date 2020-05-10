@@ -399,6 +399,8 @@ class Client {
                            $page = 0,
                            $playlistInBest = true
     ) {
+		$text = urlencode($text);
+		
         $url = $this->baseUrl."/search"
             ."?text=$text"
             ."&nocorrect=$noCorrect"
@@ -419,6 +421,7 @@ class Client {
      * @return mixed parsed json
      */
     public function searchSuggest($part) {
+		$part = urlencode($part);
         $url = $this->baseUrl."/search/suggest?part=$part";
 
         $response = json_decode($this->get($url))->result;

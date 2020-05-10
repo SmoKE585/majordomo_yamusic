@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '2.4 Beta';
+		$this->version = '2.5 Beta';
 		$this->checkInstalled();
 	}
 
@@ -30,7 +30,9 @@ class yamusic extends module {
 		global $mode;
 		global $view_mode;
 		global $edit_mode;
+		global $page;
 		global $playlistID;
+		global $md;
 		global $tab;
 		if (isset($id)) {
 			$this->id=$id;
@@ -43,6 +45,12 @@ class yamusic extends module {
 		}
 		if (isset($edit_mode)) {
 			$this->edit_mode=$edit_mode;
+		}
+		if (isset($page)) {
+			$this->page=$page;
+		}
+		if (isset($md)) {
+			$this->md=$md;
 		}
 		if (isset($playlistID)) {
 			$this->playlistID=$playlistID;
@@ -134,27 +142,24 @@ class yamusic extends module {
 		$loadPlaylist = new Client($userToken);
 		$loadPlaylist = $loadPlaylist->usersPlaylistsList();
 		
-		//Если плейлист пустой
-		if(!empty($loadPlaylist)) {
-			//Запишем в БД
-			foreach($loadPlaylist as $value) {
-				//Генерим обложку
-				@$coverLoad = file_get_contents('https://avatars.yandex.net'.$value->cover->dir.'200x200');
-				if($coverLoad) {
-					$coverLoad = 'https://avatars.yandex.net'.$value->cover->dir.'200x200';
-				} else {
-					$coverLoad = '/img/modules/yamusic.png';
-				}
-				
-				$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".dbSafe($value->kind)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
-				
-				if($selectIfDouble['PLAYLISTID'] != $value->kind) {
-					SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','".dbSafe($value->kind)."','".dbSafe($value->title)."','".dbSafe($value->visibility)."','".dbSafe(date('d.m.Y H:i:s', strtotime($value->created)))."','".dbSafe(date('H:m:i', $value->durationMs*1000))."','".dbSafe($coverLoad)."');");
-				}
-
+		//Запишем в БД
+		foreach($loadPlaylist as $value) {
+			//Генерим обложку
+			@$coverLoad = file_get_contents('https://avatars.yandex.net'.$value->cover->dir.'200x200');
+			if($coverLoad) {
+				$coverLoad = 'https://avatars.yandex.net'.$value->cover->dir.'200x200';
+			} else {
+				$coverLoad = '/img/modules/yamusic.png';
 			}
+			
+			$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".dbSafe($value->kind)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
+			
+			if($selectIfDouble['PLAYLISTID'] != $value->kind) {
+				SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','".dbSafe($value->kind)."','".dbSafe($value->title)."','".dbSafe($value->visibility)."','".dbSafe(date('d.m.Y H:i:s', strtotime($value->created)))."','".dbSafe(date('H:m:i', $value->durationMs*1000))."','".dbSafe($coverLoad)."');");
+			}
+
 		}
-		
+
 		//Создадим плейлист МНЕ НРАВИТСЯ
 		$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '-1".$userUID."' ORDER BY `ID` DESC LIMIT 1");
 		if($selectIfDouble['PLAYLISTID'] != '-1'.$userUID) {
@@ -173,34 +178,30 @@ class yamusic extends module {
 		if($playlistID == '-1'.$userUID) {
 			$likesTrack = $newDOM->getLikesTracks();
 			
-			//Если плейлист пустой
-			if(!empty($likesTrack->tracks)) {
-				foreach($likesTrack->tracks as $key => $value) {
-					//Получим ID треков
-					$idTrack = $value->id;
-					//Получим обложку и название
-					$getCover = $newDOM->tracks($idTrack);
-					
-					//Если нет инфы о треке - пропускае, он удален
-					if(!$getCover[0]->durationMs) continue;
-					if(!$getCover[0]->coverUri) continue;
-					
-					//Генерируем массив песен
-					$cover = mb_strlen($getCover[0]->coverUri)-2;
-					$cover = substr($getCover[0]->coverUri, 0, $cover);
-					
-					$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
-					
-					if($selectIfDouble['SONGID'] != $idTrack) {
-						SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
-					}
+			foreach($likesTrack->tracks as $key => $value) {
+				//Получим ID треков
+				$idTrack = $value->id;
+				//Получим обложку и название
+				$getCover = $newDOM->tracks($idTrack);
+				
+				//Если нет инфы о треке - пропускае, он удален
+				if(!$getCover[0]->durationMs) continue;
+				if(!$getCover[0]->coverUri) continue;
+				
+				//Генерируем массив песен
+				$cover = mb_strlen($getCover[0]->coverUri)-2;
+				$cover = substr($getCover[0]->coverUri, 0, $cover);
+				
+				$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
+				
+				if($selectIfDouble['SONGID'] != $idTrack) {
+					SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
 				}
 			}
-			
 		} else {
 			$loadUserMusic = $newDOM->usersPlaylists($playlistID);
 			$loadUserMusic = $loadUserMusic->result[0]->tracks;
-					
+			
 			foreach($loadUserMusic as $key => $value) {
 				//Получим ID треков
 				$idTrack = $value->id;
@@ -214,11 +215,11 @@ class yamusic extends module {
 				$cover = mb_strlen($getCover[0]->coverUri)-2;
 				$cover = substr($getCover[0]->coverUri, 0, $cover);
 				
-				$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
+				//$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
 				
-				if($selectIfDouble['SONGID'] != $idTrack) {
+				//if($selectIfDouble['SONGID'] != $idTrack) {
 					SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
-				}
+				//}
 			}
 		}
 		
@@ -253,6 +254,13 @@ class yamusic extends module {
 		if($seconds < 10) $seconds = '0'.floor($seconds);
 		
 		return $minutes.':'.$seconds;
+	}
+	
+	function changeActiveUser($setUserID) {
+		SQLExec("UPDATE `yamusic_users` SET `SELECTED` = '0'");
+		SQLExec("UPDATE `yamusic_users` SET `SELECTED` = '1' WHERE `ID` = '".dbSafe($setUserID)."'");
+		
+		return true;
 	}
 	
 	function admin(&$out) {
@@ -334,53 +342,73 @@ class yamusic extends module {
 			} else {
 				//Плейлистов в БД нет, загружаем
 				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+				$out['LOADPLAYLISTDONE'] = 1;
 			}
 			
 			//ЗАпрос на обновление плейлистов
 			if($this->mode == 'reloadplaylist') {
 				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+				$out['LOADPLAYLISTDONE'] = 1;
 			}
 			
 			if($this->mode == 'test') {
 				require_once(DIR_MODULES.$this->name.'/client.php');
 				$accountInfo = new Client($loadUserInfo['TOKEN']);
 				
-				$test = $accountInfo->landing('personalplaylists');
+				$test = $accountInfo->search('знаешь ли ты', false,'track',0,false);
 				echo '<pre>';
 				var_dump($test);
 				die();
 			}
 			
-			if(($this->mode == 'loadPlayList' && !empty($this->playlistID)) || empty($this->mode)) {
-				if(empty($this->mode)) $this->playlistID = '-1'.$loadUserInfo['UID'];
-				$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
-				$selectPlaylist = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+			if($this->mode != 'loadPlayList') $this->playlistID = '-1'.$loadUserInfo['UID'];
+			
+			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+			$selectPlaylist = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+			
+			if($selectMusic[0]['SONGID']) {
+				//Выгрузим музыку пользователя
+				$countMusicList = 0;	
+				$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
 				
-				if($selectMusic[0]['SONGID']) {
-					//Выгрузим музыку пользователя
-					$countMusicList = 0;	
-					$countShowMusicList = 0;
-					
-					foreach($selectMusic as $key => $value) {
-						//$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
-						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
-						$countShowMusicList++;
-						//Счетчик
-						$countMusicList++;
-					}
-					
-					//В выдачу
-					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
-					$out['PLAYLIST_CURRENT'] = $this->playlistID;
-					$out['PLAYLIST_CURRENT_NAME'] = $selectPlaylist['TITLE'];
-					$out['TOTAL_PLAYLIST_TRACKS'] = $countMusicList;
-					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countShowMusicList;
-					
-				} else {
-					//Музыки загруженой нет, загружаем
-					$this->loadUserMusic($loadUserInfo['TOKEN'], $loadUserInfo['UID'], $this->playlistID);
+				foreach($selectMusic as $key => $value) {
+					$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+					$countMusicList++;
 				}
+				
+				//В выдачу
+				$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+				$out['PLAYLIST_CURRENT'] = $this->playlistID;
+				$out['PLAYLIST_CURRENT_NAME'] = $selectPlaylist['TITLE'];
+				$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
+				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
+				
+			} else {
+				//Музыки загруженой нет, загружаем
+				$this->loadUserMusic($loadUserInfo['TOKEN'], $loadUserInfo['UID'], $this->playlistID);
 			}
+			
+			//Посмотрим в БД есть ли ТВ LG
+			$isHaveLGTV = @SQLSelect("SELECT * FROM `lgwebostv_commands` WHERE `LINKED_OBJECT` != '' AND `LINKED_PROPERTY` != '' ORDER BY `ID`");
+			
+			if($isHaveLGTV[0]['LINKED_OBJECT'] && $isHaveLGTV[0]['LINKED_PROPERTY']) {
+				$countArrayTV = 0;
+				foreach($isHaveLGTV as $key=>$value) {
+					if($value['TITLE'] == 'command') {
+						$out['ISHAVELGTV_ARRAY'][$countArrayTV]['DEVICE_ID'] = $value['DEVICE_ID'];
+						$out['ISHAVELGTV_ARRAY'][$countArrayTV]['OBJ'] = $value['LINKED_OBJECT'];
+						$out['ISHAVELGTV_ARRAY'][$countArrayTV]['PROP'] = $value['LINKED_PROPERTY'];
+						$countArrayTV++;
+						continue;
+					}
+				}
+				
+				$out['ISHAVELGTV_FLAG'] = 1;
+				//$out['ISHAVELGTV_ARRAY'] = $isHaveLGTV;
+			}
+			
+			//Лечим косяк MJDM
+			if($this->md != 'yamusic') $this->redirect("?mode=loadPlayList&playlistID=".$this->playlistID);
 			
 		} else {
 			//Метка, что юзера НЕТ в БД
@@ -389,7 +417,7 @@ class yamusic extends module {
 		
 		
 		$out['VERSION'] = $this->version;
-		
+		$out['SERVER_IP'] = $_SERVER['SERVER_ADDR'];
 	}
 	
 	function usual(&$out) {

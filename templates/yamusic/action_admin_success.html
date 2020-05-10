@@ -3,6 +3,17 @@
 		<h4>Мой аккаунт</h4>
 		<ul class="list-group">
 			<li class="list-group-item">
+				<span class="badge" style="background-color: white;padding: 0px;">
+					<select class="custom-select form-control" style="    width: 140px;height: 30px;padding: 0px;border: 1px solid #ddd;margin-top: -5px;font-size: 1rem;" onchange="sendValue('Bedroom_Radiator', 'humi_timetojob', $(this).val());">
+						<option>Выберите аккаунт</option>
+						[#begin ALLUSERLIST#]
+						<option value="[#ID#]">[#FULLNAME#] ([#USERNAME#])</option>
+						[#end ALLUSERLIST#]
+					</select>
+				</span>
+				Сменить аккаунт
+			</li>
+			<li class="list-group-item">
 				<span class="badge">[#ACCOUNT_ID#]</span> <span class="badge">[#ACCOUNT_UID#]</span>
 				UID/ID
 			</li>
@@ -25,19 +36,43 @@
 		</ul>
 		<div id="addNewUSer" style="display:none;">
 			<hr>
-			<form action="?" method="post" enctype="multipart/form-data">
-				<label>Логин от Яндекс.Музыки</label>
+			<div id="loadNewUser" style="display:none;text-align: center;background: #ececec;padding: 5px;border-radius: 10px;border: 1px solid #FF9800;">
+				<img src="/templates/yamusic/img/load.gif">
+				<p>Загружаем информацию о новом аккаунте! Если логин и пароль верны, модуль загрузит ваши плейлисты и музыку из них. Операция долгая - не закрывайте страницу!</p>
+			</div>
+			<form action="?" method="post" enctype="multipart/form-data" id="loadNewUserForm">
+				<label>Логин от Яндекс.Музыка</label>
 				<input type="text" class="form-control" style="outline: none;border-radius: 5px;" name="loginYandex" placeholder="Логин, без @yandex.ru" value="">
 				<label style="margin-top: 15px;">Пароль от Яндекс.Музыки</label>
 				<input type="password" class="form-control" style="outline: none;border-radius: 5px;" name="passwordYandex" placeholder="" value="">
 				<center style="margin-top: 20px;margin-bottom: 20px;">
-					<button type="submit" class="btn btn-success"><i class="las la-user-tie"></i> Авторизоваться</button>
+					<button type="submit" class="btn btn-success" onclick="$('#loadNewUser').show();$('#loadNewUserForm').hide();"><i class="las la-user-tie"></i> Авторизоваться</button>
 				</center>
 				
 				<input type="hidden" name="mode" value="auth">
 			</form>
 		</div>
-		<div class="text-center"><a href="#" style="text-decoration: none;color: #333333;border: 1px solid #cccccc;padding: 10px;border-radius: 5px;" onclick="$(this).hide();$('#addNewUSer').show();">Добавить нового пользователя</a></div>
+		[#if ERRORAUTH == 1#]
+			<div class="alert alert-danger" role="alert" style="text-align: center;" id="hintWrongPass">
+				Ошибка авторизации! Введен неверный логин или пароль...
+			</div>
+		[#endif#]
+		<div class="text-center"><a href="#" style="text-decoration: none;color: #333333;border: 1px solid #cccccc;padding: 10px;border-radius: 5px;" onclick="$(this).hide();$('#addNewUSer').show();$('#hintWrongPass').hide();">Добавить нового пользователя</a></div>
+		<hr>
+		<div class="row text-center">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
+			<img src="/templates/yamusic/img/playlist_icon/onday.png" style="width: 95%;">
+		</div>
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
+			<img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;">
+		</div>
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
+			<img src="/templates/yamusic/img/playlist_icon/dejavu.gif" style="width: 95%;">
+		</div>
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
+			<img src="/templates/yamusic/img/playlist_icon/tainik.gif" style="width: 95%;">
+		</div>
+		</div>
 		<hr>
 		<h4>Мои плейлисты ([#TOTAL_PLAYLIST#] шт.)</h4>
 		<!---
@@ -51,113 +86,128 @@
 			</a>
 		</div>--->
 		<script>
-		function startPlayMusic(playlist, owner, songID = '', count = '') {		
-			//Получим список треков
+		function startPlayMusic(command) {
+			//Покажем лоадинг
+			$('#startPlayMusic').hide();
+			$('#nextTrack').hide();
+			$('#prevTrack').hide();
+			$('#startPlayMusicLoad').show();
+			
+			//Узнаем, чью музыку запускать
+			onwer = $('#ownerMusic').text();
+			isShaffle = $('#shaffleMusic').text();
+			playlist = $('#playlistMusic').text();
+			next = $('#currentMusicTrack').text();
+			prev = $('#currentMusicTrack').text();
+			
+			songID = '&songID='+$('#playSongCommand').text();
+			
+			//Плейлист по умолчанию
+			if(!playlist) playlist = '[#PLAYLIST_CURRENT#][#ACCOUNT_UID#]'; 
+			if(!onwer) onwer = '[#ACCOUNT_UID#]'; 
+			
+			if(command == 'prev') {
+				urlGenerate = '/modules/yamusic/json.php?mode=track&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+'&prev='+prev+songID;
+			} else if(command == 'next') {
+				urlGenerate = '/modules/yamusic/json.php?mode=track&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+'&next='+next+songID;
+			} else {
+				urlGenerate = '/modules/yamusic/json.php?mode=track&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+songID;
+			}
+			
+			//Запрос нужного трека
 			$.getJSON({
-				url: '/modules/yamusic/json.php?mode=generate&songID=' + songID + '&playlist=' + playlist + '&count=' + count + '&owner=' + owner,
+				url: urlGenerate,
 				success: function(responce) {
-					$('.clearBottonPause').hide();
-					$('.clearBottonPlay').show();
 					//Вставляем ссылку
 					$('#musicPlayer').attr('src', responce[0].LINK);
-					console.log(responce[0].LINK);
 					//Инфо о треке
-					$('#songName').show();
-					$('#songName').html(responce[0].NAMESONG);
-					$('#artistsName').show();
+					if(responce[0].NAMESONG.length > 16) {
+						$('#songName').html('<marquee behavior="alternate" direction="left" style="margin-bottom: -6px;" scrollamount="3">'+responce[0].NAMESONG+'</marquee>');
+					} else {
+						$('#songName').html(responce[0].NAMESONG);
+					}
+					
 					$('#artistsName').html(responce[0].ARTISTS);
 					$('#coverSong').attr('src', responce[0].COVER);
-					//Меняем кнопки
-					$('#startPlayMusic').hide();
-					$('#pausePlayMusic').show();
-					$('#startPlayMusic_'+songID).hide();
-					$('#pausePlayMusic_'+songID).show();
 					
-					$('.clearTRNowTrack').attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;');
-					$('#trsong_'+songID).attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;background: #d6ecff;');
-					//Воспроизводим
-					$('#musicPlayer').get(0).play();
+					var audio = document.getElementById("musicPlayer");
 					
+					audio.addEventListener('ended', function () {
+						if($('#coverSong').attr('src')) nextPlayMusic();
+					})
 					
-					//Вешаем обработчик, чтобы понять, что трек закончился
-					//document.getElementById('musicPlayer').addEventListener('ended',myHandler,false);
-					//function myHandler(e) {
-					//	console.log(e);
-					//	nextPlayMusic();
-					//}
+					audio.addEventListener('canplay', function () {
+						$('#currentMusicTrack').text(responce[0].ID);
+					})
+					
+					audio.addEventListener('loadedmetadata', function () {
+						//Меняем кнопки
+						$('#startPlayMusicLoad').hide();
+						//Воспроизводим после того как метаданные загрузятся
+						$('#musicPlayer').get(0).play();
+						$('#pausePlayMusic').show();
+						$('#nextTrack').show();
+						if(isShaffle != 1) $('#prevTrack').show();
+						$('#playSongCommand').text('');
+						
+						$('.clearBottonPause').hide();
+						$('.clearBottonPlay').show();
+						
+						$('#startPlayMusic_'+responce[0].SONGID).hide();
+						$('#pausePlayMusic_'+responce[0].SONGID).show();
+						
+						$('.clearTRNowTrack').attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;');
+						$('#trsong_'+responce[0].SONGID).attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;background: #d6ecff;');
+					})
+
 				},
-			});
-			
-		}
-		
-		function nextPlayMusic2() {
-			//Чья музыка
-			whoMusic = Number($('#whoMusic').text());
-			
-			//Если включен шейк - то мешаем
-			if(Number($('#shakeMusicTrack').text()) == 1) {
-				if(whoMusic == 2) {
-					$('#countMusicTrack').text(Math.floor(Math.random() * (383 - 0)) + 0);
-				} else if(whoMusic == 1) {
-					$('#countMusicTrack').text(Math.floor(Math.random() * (279 - 0)) + 0);
+				error: function(responce) {
+					showNoty('error', 'Ошибка получения треков =( Музыки не будет...');
 				}
-				//Сколько треков скипать
-				skipTrack = Number($('#countMusicTrack').text());
-			} else {
-				//Сколько треков скипать
-				skipTrack = Number($('#countMusicTrack').text())+1;
-			}
-			
-			//Изменим счетчик треков
-			$('#countMusicTrack').text(skipTrack);
-			$('#whoMusic').text(whoMusic);
-			if(skipTrack >= 0) $('#prevTrack').show();
-			$('#nextTrack').attr('style', 'animation: slideOutRight;animation-duration: 1s;font-size: 3.6rem;color: #5d5386;margin-left: 15px;');
-			startPlayMusic();
+			});			
 		}
 		
-		function prevPlayMusic2() {
-			//Чья музыка
-			whoMusic = Number($('#whoMusic').text());
-			
-			//Если включен шейк - то мешаем
-			if(Number($('#shakeMusicTrack').text()) == 1) {
-				if(whoMusic == 2) {
-					$('#countMusicTrack').text(Math.floor(Math.random() * (383 - 0)) + 0);
-				} else if(whoMusic == 1) {
-					$('#countMusicTrack').text(Math.floor(Math.random() * (279 - 0)) + 0);
-				}
-				//Сколько треков скипать
-				skipTrack = Number($('#countMusicTrack').text());
-			} else {
-				//Сколько треков скипать
-				skipTrack = Number($('#countMusicTrack').text())-1;
-			}
-			
-			//Изменим счетчик треков
-			$('#countMusicTrack').text(skipTrack);
-			$('#whoMusic').text(whoMusic);
-			if(skipTrack <= 0) $('#prevTrack').hide();
-			$('#prevTrack').attr('style', 'animation: slideOutLeft;animation-duration: 1s;font-size: 3.6rem;color: #5d5386;margin-right: 15px;');	
-			if(skipTrack <= 0) skipTrack = 0;
-			startPlayMusic();
+		function nextPlayMusic() {
+			$('#pausePlayMusic').hide();
+			startPlayMusic('next');
 		}
 		
-		function pausePlayMusic() {
-			$('.clearBottonPause').hide();
-			$('.clearBottonPlay').show();
-			//Инфо о треке
-			$('#songName').hide();
-			$('#artistsName').hide();
-			$('#coverSong').attr('src', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Yandex_Music_Russian_logo.svg/1200px-Yandex_Music_Russian_logo.svg.png');
+		function prevPlayMusic() {
+			$('#pausePlayMusic').hide();
+			startPlayMusic('prev');
+		}
+		
+		function pausePlayMusic() {	
+			var audio = document.getElementById("musicPlayer");
+			audio.removeEventListener("ended", function() {});
+			audio.removeEventListener("loadedmetadata", function() {});
+			audio.removeEventListener("canplay", function() {});
+			
 			//Меняем кнопки
 			$('#startPlayMusic').show();
 			$('#pausePlayMusic').hide();
-			$('.clearTRNowTrack').attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;');
-			
+			$('#nextTrack').hide();
+			$('#prevTrack').hide();
+			//Пауза
 			$('#musicPlayer').get(0).pause();
+			$('#musicPlayer').removeAttr('src');
 			
-
+			//Инфо о треке
+			$('#songName').html('');
+			$('#artistsName').html('');
+			$('#coverSong').attr('src', 'assets/img/yamusic.png');
+		}
+		
+		function shaffleMusicTrack() {
+			shaffleStatus = $('#shaffleMusic').text();
+			
+			if(shaffleStatus == 1) {
+				$('#shaffleMusic').text('0');
+				$('#shaffleMusicTrackIcon').attr('style', '');
+			} else {
+				$('#shaffleMusic').text('1');
+				$('#shaffleMusicTrackIcon').attr('style', 'background: orange;');
+			}
 		}
 		
 		$(function() {
@@ -195,7 +245,7 @@
 							<i class="las la-tv" onclick="alert('Отправить на ТВ LGWEBOS. В разработке');" style="font-size: 4rem;"></i>
 							<i class="las la-cloud-upload-alt" onclick="alert('Отправить на терминал. В разработке');" style="font-size: 4rem;"></i>
 							
-							<i class="las la-play clearBottonPlay" style="font-size: 4rem;color: #5cb85c;" id="startPlayMusic_[#SONGID#]" onclick="startPlayMusic(<#PLAYLIST_CURRENT#>, [#OWNER#], [#SONGID#]);"></i>
+							<i class="las la-play clearBottonPlay" style="font-size: 4rem;color: #5cb85c;" id="startPlayMusic_[#SONGID#]" onclick="$('#playlistMusic').text('<#PLAYLIST_CURRENT#>');$('#ownerMusic').text('[#OWNER#]');$('#playSongCommand').text('[#SONGID#]');startPlayMusic();"></i>
 							<i class="las la-pause-circle clearBottonPause" style="font-size: 4rem;display:none;color: #b35b81;" id="pausePlayMusic_[#SONGID#]" onclick="pausePlayMusic();"></i>
 						</td>
 						
@@ -212,12 +262,21 @@
 			<span id="artistsName"></span> - <b id="songName"></b>
 		</div>
 		<div id="buttonControl" class="text-center" style="margin-top: 30px;font-size: 2rem;">
-			<i class="las la-backward" style="font-size: 4rem;color: #5d5386;margin-right: 15px;" id="prevTrack" onClick="prevPlayMusic();"></i>
+			<i class="las la-backward" style="font-size: 4rem;color: #5d5386;margin-right: 15px;display:none;" id="prevTrack" onClick="prevPlayMusic();"></i>
+			
+			<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad" style="width: 50px;vertical-align: top;display: none;">
+			
 			<i class="las la-play" style="font-size: 4rem;color: #5cb85c;" id="startPlayMusic" onclick="startPlayMusic();"></i>
 			<i class="las la-pause-circle" style="font-size: 4rem;display:none;color: #b35b81;" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
-			<i class="las la-forward" style="font-size: 4rem;color: #5d5386;margin-left: 15px;" id="nextTrack" onClick="nextPlayMusic();"></i>
-			<audio id="musicPlayer" src=""></audio>
-			<div id="hideBlockCurrentTrack" style="display:none;"></div>
+			<i class="las la-forward" style="font-size: 4rem;color: #5d5386;margin-left: 15px;display:none;" id="nextTrack" onClick="nextPlayMusic();"></i>
+			
+			<audio id="musicPlayer" src="" preload="auto"></audio>
+
+			<div id="currentMusicTrack" style="display: none;">0</div>
+			<div id="playSongCommand" style="display: none;"></div>
+			<div id="shaffleMusic" style="display: none;">0</div>
+			<div id="ownerMusic" style="display: none;">[#ACCOUNT_UID#]</div>
+			<div id="playlistMusic" style="display: none;">[#PLAYLIST_CURRENT#][#ACCOUNT_UID#]</div>
 		</div>
 	</div>
 </div>

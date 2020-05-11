@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '2.6 Beta';
+		$this->version = '2.7 Beta';
 		$this->checkInstalled();
 	}
 
@@ -260,7 +260,16 @@ class yamusic extends module {
 		SQLExec("UPDATE `yamusic_users` SET `SELECTED` = '0'");
 		SQLExec("UPDATE `yamusic_users` SET `SELECTED` = '1' WHERE `ID` = '".dbSafe($setUserID)."'");
 		
-		return true;
+		return;
+	}
+	
+	function setAudioVolume($chanel, $value) {
+		$this->getConfig();
+		
+		$this->config['VOLUME_'.$chanel] = $value;
+		$this->saveConfig();
+		
+		return;
 	}
 	
 	function admin(&$out) {
@@ -414,11 +423,14 @@ class yamusic extends module {
 			//Лечим косяк MJDM
 			if($this->md != 'yamusic') $this->redirect("?mode=loadPlayList&playlistID=".$this->playlistID);
 			
+			//Выгружаем громкость
+			$this->getConfig();
+			$out['VOLUME_PUANDSCENE'] = $this->config['VOLUME_PUANDSCENE'];
+			if(empty($out['VOLUME_PUANDSCENE'])) $out['VOLUME_PUANDSCENE'] = 1;
 		} else {
 			//Метка, что юзера НЕТ в БД
 			$out['ISUSER'] = 0;
 		}
-		
 		
 		$out['VERSION'] = $this->version;
 		$out['SERVER_IP'] = $_SERVER['SERVER_ADDR'];

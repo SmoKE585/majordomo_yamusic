@@ -32,5 +32,13 @@ if($_GET['action'] == 'changeUser') {
 	$class->changeActiveUser($newUserID);
 }
 
+if($_GET['action'] == 'saveVolume') {
+	$chanel = strip_tags($_GET['chanel']);
+	$value = strip_tags($_GET['value']);
+	
+	$class = new yamusic();
+	$class->setAudioVolume($chanel, $value);
+}
+
 echo json_encode(array('status' => 'OK'));
 ?>

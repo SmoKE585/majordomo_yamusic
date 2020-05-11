@@ -118,9 +118,23 @@
 			});			
 		}
 		
+		function saveVolume(chanel, value) {
+			$.getJSON({
+				url: '/modules/yamusic/ajax.php?action=saveVolume&chanel='+chanel+'&value='+value,
+				success: function(responce) {
+					
+				},
+				error: function(responce) {
+					alert('Ошибка AJAX - changeUser');
+				}
+			});			
+		}
+		
 		function startPlayMusic(command) {
 			//Покажем лоадинг
 			$('#startPlayMusic').hide();
+			$('#shaffleBotton').hide();
+			$('#volumeBotton').hide();
 			$('#pausePlayMusic').hide();
 			$('#nextTrack').hide();
 			$('#prevTrack').hide();
@@ -174,10 +188,12 @@
 						
 						$('#artistsName').html(responce[0].ARTISTS);
 						$('#coverSong').attr('src', responce[0].COVER);
-						$('#backgroundCoverBlur').attr('style', 'position: fixed;background-image: url('+responce[0].COVER+');filter: blur(15px);background-size: cover;background-position: center center;z-index: 99;background-repeat: no-repeat;height: 150px;width: 300px;padding: 15px;border-radius: 20px 20px 0px 0px;bottom: 0;right: 0;margin-right: 10px;');
+						$('#backgroundCoverBlur').attr('style', 'position: fixed;background-image: url('+responce[0].COVER+');filter: blur(15px);background-size: cover;background-position: center center;z-index: 99;background-repeat: no-repeat;height: 180px;width: 300px;padding: 15px;border-radius: 20px 20px 0px 0px;bottom: 0;right: 0;margin-right: 15px;');
 						$('#backgroundCoverBlur').show();
 						
 						$('#hideWhenNoneMusic').show();
+						$('#shaffleBotton').show();
+						$('#volumeBotton').show();
 						
 						//Воспроизводим после того как метаданные загрузятся
 						$('#musicPlayer').get(0).play();
@@ -248,14 +264,32 @@
 			
 			if(shaffleStatus == 1) {
 				$('#shaffleMusic').text('0');
-				$('#shaffleMusicTrackIcon').attr('style', '');
+				$('#shaffleBotton').attr('style', 'font-size: 2.3rem;margin-left: 15px;vertical-align: super;');
 			} else {
 				$('#shaffleMusic').text('1');
-				$('#shaffleMusicTrackIcon').attr('style', 'background: orange;');
+				$('#shaffleBotton').attr('style', 'color: orange;font-size: 2.3rem;margin-left: 15px;vertical-align: super;');
 			}
 		}
 		
+		function rangeVolumeSet() {
+			let audio = document.querySelector('audio');
+			val = $('#volumeSetControl').val();
+			audio.volume = val/100;
+			
+			saveVolume('PUANDSCENE', val/100);
+			
+			$('#setShowVolume').text(val);
+			$('#volumeSetControl').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+val+'%,#fff '+val+'%, #fff 100%)'});
+		}
+		
 		$(function() {
+			let audio = document.querySelector('audio');
+			audio.volume = [#VOLUME_PUANDSCENE#];
+			loadSetVolume = '[#VOLUME_PUANDSCENE#]'*100;
+			$('#setShowVolume').text(loadSetVolume);
+			$('#volumeSetControl').val(loadSetVolume);
+			$('#volumeSetControl').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+loadSetVolume+'%,#fff '+loadSetVolume+'%, #fff 100%)'});
+			
 			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #d6ecff;');
 		});
 		</script>
@@ -329,6 +363,12 @@
 				</span>
 				Отправить на ТВ
 			</li>
+			<li class="list-group-item">
+				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;" data-toggle="modal" data-target="#volumeControl">
+					<i class="las la-volume-up" style="font-size: 2.3"></i> <span style="vertical-align: top;">Настроить</span>
+				</span>
+				Громкость
+			</li>
 		</ul>
 	</div>
 	
@@ -344,6 +384,8 @@
 		</div>
 		
 		<div id="buttonControl" class="text-center" style="background: white;border-radius: 50px;padding: 10px;margin-top: 20px;">
+			<i class="las la-volume-up" data-toggle="modal" data-target="#volumeControl" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>
+		
 			<i class="las la-backward" style="font-size: 4rem;color: #5d5386;margin-right: 15px;display:none;" id="prevTrack" onClick="prevPlayMusic();"></i>
 			
 			<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad" style="width: 40px;vertical-align: top;display: none;">
@@ -352,6 +394,8 @@
 			<i class="las la-pause-circle" style="font-size: 4rem;display:none;color: #b35b81;" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
 			<i class="las la-forward" style="font-size: 4rem;color: #5d5386;margin-left: 15px;display:none;" id="nextTrack" onClick="nextPlayMusic();"></i>
 			
+			<i class="las la-random" id="shaffleBotton" onclick="shaffleMusicTrack();" style="display:none;font-size: 2.3rem;margin-left: 15px;vertical-align: super;"></i>
+			
 			<audio id="musicPlayer" src="" preload="auto"></audio>
 
 			<div id="currentMusicTrack" style="display: none;">0</div>
@@ -359,6 +403,29 @@
 			<div id="shaffleMusic" style="display: none;">0</div>
 			<div id="ownerMusic" style="display: none;">[#ACCOUNT_UID#]</div>
 			<div id="playlistMusic" style="display: none;">[#PLAYLIST_CURRENT#][#ACCOUNT_UID#]</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="volumeControl" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Громкость медиа</h4>
+			</div>
+			<div class="modal-body">
+				<p>
+					Установите постоянную громкость медиа для модуля. При любом использовании будет установлена ​​указанная громкость.
+				</p>
+				
+				<h4 style="border-top: 1px solid #e7e7e7;padding-top: 10px;">Громкость для ПУ и сцен: (PUANDSCENE)</h4>
+				<div>
+					<div class="text-center" style="font-size: 4rem;">
+						<i class="las la-volume-up"></i> <span id="setShowVolume"></span>%
+					</div>
+					<input type="range" id="volumeSetControl" onChange="rangeVolumeSet()" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

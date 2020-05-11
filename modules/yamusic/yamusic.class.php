@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '2.7 Beta';
+		$this->version = '2.8 Beta';
 		$this->checkInstalled();
 	}
 
@@ -97,7 +97,7 @@ class yamusic extends module {
 		return $selectUser;
 	}
 	
-	function generateTrack($playlist, $owner, $songID = '', $count = 1, $shaffle = 0, $next = '', $prev = '') {
+	function generateTrack($playlist, $owner, $songID = '', $count = 1, $shaffle = 0, $next = '', $prev = '', $sizeCover = '200x200') {
 		if(empty($playlist) || empty($owner)) die(); 
 		
 		if($shaffle >= 2) $shaffle = 0; 
@@ -127,6 +127,7 @@ class yamusic extends module {
 		foreach($selectMusic as $key => $value) {
 			$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
 			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+			$selectMusic[$key]['COVER_SIZED'] = str_ireplace("200x200", $sizeCover, $value['COVER']);;
 		}
 		
 		return $selectMusic;
@@ -199,7 +200,7 @@ class yamusic extends module {
 				}
 			}
 		} else {
-			$loadUserMusic = $newDOM->usersPlaylists($playlistID);
+			$loadUserMusic = $newDOM->usersPlaylists($playlistID, $userUID);
 			$loadUserMusic = $loadUserMusic->result[0]->tracks;
 			
 			foreach($loadUserMusic as $key => $value) {
@@ -268,6 +269,42 @@ class yamusic extends module {
 		
 		$this->config['VOLUME_'.$chanel] = $value;
 		$this->saveConfig();
+		
+		return;
+	}
+	
+	function loadUserMusicPlaylistOnDay($userToken, $userUID, $reload = 0) {
+		//Запрашиваем плейлист дня
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+		$playlistOnDayArray = $newDOM->landing('personalplaylists');
+		$playlistID = $playlistOnDayArray->blocks[0]->entities[0]->data->data->kind;
+		$playlistModify = $playlistOnDayArray->blocks[0]->entities[0]->data->data->modified;
+		$playlistOwner = $playlistOnDayArray->blocks[0]->entities[0]->data->data->owner->uid;
+		
+		//Удалим старые треки из БД
+		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$playlistOwner."' AND `PLAYLISTID` = '".$playlistID."'");
+		//Разные даты, а значит надо заного обновлять
+		$loadUserMusic = $newDOM->usersPlaylists($playlistID, $playlistOwner);
+		$loadUserMusic = $loadUserMusic->result[0]->tracks;
+		
+		foreach($loadUserMusic as $key => $value) {
+			//Получим ID треков
+			$idTrack = $value->id;
+			//Получим обложку и название
+			$getCover = $newDOM->tracks($idTrack);
+			
+			//Если нет инфы о треке - пропускае, он удален
+			if(!$getCover[0]->durationMs) continue;
+			
+			//Генерируем массив песен
+			$cover = mb_strlen($getCover[0]->coverUri)-2;
+			$cover = substr($getCover[0]->coverUri, 0, $cover);
+			
+			//Записываем НО меняем владельца плейлиста
+			SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+		}
 		
 		return;
 	}
@@ -370,31 +407,74 @@ class yamusic extends module {
 				die();
 			}
 			
-			if($this->mode != 'loadPlayList') $this->playlistID = '-1'.$loadUserInfo['UID'];
-			
-			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
-			$selectPlaylist = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
-			
-			if($selectMusic[0]['SONGID']) {
-				//Выгрузим музыку пользователя
-				$countMusicList = 0;	
-				$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+			if(empty($this->mode)) $this->playlistID = '-1'.$loadUserInfo['UID'];
 				
-				foreach($selectMusic as $key => $value) {
-					$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
-					$countMusicList++;
+			if($this->mode == 'playlistOnDay') {
+				//Запрашиваем плейлист дня
+				require_once(DIR_MODULES.$this->name.'/client.php');
+				$newDOM = new Client($loadUserInfo['TOKEN']);
+				//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+				$playlistOnDay = $newDOM->landing('personalplaylists');
+				$playlistOnDay_ID = $playlistOnDay->blocks[0]->entities[0]->data->data->kind;
+				$playlistOnDay_Modify = $playlistOnDay->blocks[0]->entities[0]->data->data->modified;
+				$playlistOnDay_Owner = $playlistOnDay->blocks[0]->entities[0]->data->data->owner->uid;
+				
+				//Сравним тот же плейлист пытаются выкачать или нет
+				$this->getConfig();
+				$oldPlaylist_Modify = $this->config['PLAYLIST_ON_DAY_MODIFY_'.$loadUserInfo['UID']];
+				
+				if($oldPlaylist_Modify != $playlistOnDay_Modify || $this->view_mode == 'reload') {
+					//Разные даты, а значит надо заного обновлять
+					$this->loadUserMusicPlaylistOnDay($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+					
+					$this->config['PLAYLIST_ON_DAY_MODIFY_'.$loadUserInfo['UID']] = $playlistOnDay_Modify;
+					$this->saveConfig();
+					
+					$this->redirect("?&md=yamusic&inst=adm&mode=playlistOnDay");
+				} else {
+					$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					//Выгрузим музыку пользователя
+					$countMusicList = 0;	
+					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					foreach($selectMusic as $key => $value) {
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$countMusicList++;
+					}
+					
+					//В выдачу
+					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+					$out['PLAYLIST_CURRENT'] = $playlistOnDay_ID;
+					$out['PLAYLIST_CURRENT_NAME'] = 'Плейлист дня';
+					$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
+					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
 				}
-				
-				//В выдачу
-				$out['PLAYLIST_MUSICLIST'] = $selectMusic;
-				$out['PLAYLIST_CURRENT'] = $this->playlistID;
-				$out['PLAYLIST_CURRENT_NAME'] = $selectPlaylist['TITLE'];
-				$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
-				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
-				
 			} else {
-				//Музыки загруженой нет, загружаем
-				$this->loadUserMusic($loadUserInfo['TOKEN'], $loadUserInfo['UID'], $this->playlistID);
+				$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+				$selectPlaylist = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+				
+				if($selectMusic[0]['SONGID']) {
+					//Выгрузим музыку пользователя
+					$countMusicList = 0;	
+					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+					
+					foreach($selectMusic as $key => $value) {
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$countMusicList++;
+					}
+					
+					//В выдачу
+					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+					$out['PLAYLIST_CURRENT'] = $this->playlistID;
+					$out['PLAYLIST_CURRENT_NAME'] = $selectPlaylist['TITLE'];
+					$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
+					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
+					
+				} else {
+					//Музыки загруженой нет, загружаем
+					$this->loadUserMusic($loadUserInfo['TOKEN'], $loadUserInfo['UID'], $this->playlistID);
+				}
 			}
 			
 			//Посмотрим в БД есть ли ТВ LG
@@ -421,12 +501,14 @@ class yamusic extends module {
 			}
 			
 			//Лечим косяк MJDM
-			if($this->md != 'yamusic') $this->redirect("?mode=loadPlayList&playlistID=".$this->playlistID);
+			//if($this->md != 'yamusic') $this->redirect("?mode=loadPlayList&playlistID=".$this->playlistID);
 			
 			//Выгружаем громкость
 			$this->getConfig();
 			$out['VOLUME_PUANDSCENE'] = $this->config['VOLUME_PUANDSCENE'];
 			if(empty($out['VOLUME_PUANDSCENE'])) $out['VOLUME_PUANDSCENE'] = 1;
+			$out['VOLUME_TVLG'] = $this->config['VOLUME_TVLG'];
+			if(empty($out['VOLUME_TVLG'])) $out['VOLUME_TVLG'] = 1;
 		} else {
 			//Метка, что юзера НЕТ в БД
 			$out['ISUSER'] = 0;

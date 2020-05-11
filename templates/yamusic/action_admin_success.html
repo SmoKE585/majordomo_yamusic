@@ -60,17 +60,17 @@
 		<div class="text-center"><a href="#" style="text-decoration: none;color: #333333;border: 1px solid #cccccc;padding: 10px;border-radius: 5px;" onclick="$(this).hide();$('#addNewUSer').show();$('#hintWrongPass').hide();">Добавить нового пользователя</a></div>
 		<hr>
 		<div class="row text-center">
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
-			<img src="/templates/yamusic/img/playlist_icon/onday.png" style="width: 95%;">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
+			<a href="?mode=playlistOnDay"><img src="/templates/yamusic/img/playlist_icon/onday.png" style="width: 95%;"></a>
 		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
-			<img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;opacity: 0.1;">
+			<a href="?mode=playlistNewTrack"><img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;"></a>
 		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
-			<img src="/templates/yamusic/img/playlist_icon/dejavu.gif" style="width: 95%;">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;opacity: 0.1;">
+			<a href="?mode=playlistDejavu"><img src="/templates/yamusic/img/playlist_icon/dejavu.gif" style="width: 95%;"></a>
 		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12" style="padding: 0px;">
-			<img src="/templates/yamusic/img/playlist_icon/tainik.gif" style="width: 95%;">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;opacity: 0.1;">
+			<a href="?mode=playlistTainik"><img src="/templates/yamusic/img/playlist_icon/tainik.gif" style="width: 95%;"></a>
 		</div>
 		</div>
 		<hr>
@@ -98,7 +98,7 @@
 			$.getJSON({
 				url: '/modules/yamusic/ajax.php?action=playOnTVPlaylist&obj='+object+'&prop='+prop+'&playlist='+playlist+'&owner='+owner,
 				success: function(responce) {
-					alert('Отправлено!');
+					alert('Плейлист отправлен! Внимание на телевизор! =)');
 				},
 				error: function(responce) {
 					alert('Ошибка AJAX - sendOnTV');
@@ -125,7 +125,7 @@
 					
 				},
 				error: function(responce) {
-					alert('Ошибка AJAX - changeUser');
+					alert('Ошибка AJAX - saveVolume');
 				}
 			});			
 		}
@@ -271,24 +271,28 @@
 			}
 		}
 		
-		function rangeVolumeSet() {
+		function rangeVolumeSet(chanel) {
 			let audio = document.querySelector('audio');
-			val = $('#volumeSetControl').val();
+			val = $('#volumeSetControl_'+chanel).val();
 			audio.volume = val/100;
 			
-			saveVolume('PUANDSCENE', val/100);
+			saveVolume(chanel, val/100);
 			
-			$('#setShowVolume').text(val);
-			$('#volumeSetControl').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+val+'%,#fff '+val+'%, #fff 100%)'});
+			$('#setShowVolume_'+chanel).text(val);
+			$('#volumeSetControl_'+chanel).css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+val+'%,#fff '+val+'%, #fff 100%)'});
 		}
 		
 		$(function() {
 			let audio = document.querySelector('audio');
 			audio.volume = [#VOLUME_PUANDSCENE#];
-			loadSetVolume = '[#VOLUME_PUANDSCENE#]'*100;
-			$('#setShowVolume').text(loadSetVolume);
-			$('#volumeSetControl').val(loadSetVolume);
-			$('#volumeSetControl').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+loadSetVolume+'%,#fff '+loadSetVolume+'%, #fff 100%)'});
+		
+			$('#setShowVolume_PUANDSCENE').text('[#VOLUME_PUANDSCENE#]'*100);
+			$('#volumeSetControl_PUANDSCENE').val('[#VOLUME_PUANDSCENE#]'*100);
+			$('#volumeSetControl_PUANDSCENE').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+'[#VOLUME_PUANDSCENE#]'*100+'%,#fff '+'[#VOLUME_PUANDSCENE#]'*100+'%, #fff 100%)'});
+			
+			$('#setShowVolume_TVLG').text('[#VOLUME_TVLG#]'*100);
+			$('#volumeSetControl_TVLG').val('[#VOLUME_TVLG#]'*100);
+			$('#volumeSetControl_TVLG').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+'[#VOLUME_TVLG#]'*100+'%,#fff '+'[#VOLUME_TVLG#]'*100+'%, #fff 100%)'});
 			
 			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #d6ecff;');
 		});
@@ -414,16 +418,20 @@
 				<h4 class="modal-title">Громкость медиа</h4>
 			</div>
 			<div class="modal-body">
-				<p>
-					Установите постоянную громкость медиа для модуля. При любом использовании будет установлена ​​указанная громкость.
-				</p>
-				
+				<p>Установите постоянную громкость медиа для модуля. При любом использовании будет установлена ​​указанная громкость.</p>
 				<h4 style="border-top: 1px solid #e7e7e7;padding-top: 10px;">Громкость для ПУ и сцен: (PUANDSCENE)</h4>
 				<div>
 					<div class="text-center" style="font-size: 4rem;">
-						<i class="las la-volume-up"></i> <span id="setShowVolume"></span>%
+						<i class="las la-volume-up"></i> <span id="setShowVolume_PUANDSCENE"></span>%
 					</div>
-					<input type="range" id="volumeSetControl" onChange="rangeVolumeSet()" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
+					<input type="range" id="volumeSetControl_PUANDSCENE" onChange="rangeVolumeSet('PUANDSCENE')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
+				</div>
+				<h4 style="border-top: 1px solid #e7e7e7;padding-top: 10px;">Громкость для ТВ LGWEBOS: (TVLG)</h4>
+				<div>
+					<div class="text-center" style="font-size: 4rem;">
+						<i class="las la-volume-up"></i> <span id="setShowVolume_TVLG"></span>%
+					</div>
+					<input type="range" id="volumeSetControl_TVLG" onChange="rangeVolumeSet('TVLG')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
 				</div>
 			</div>
 		</div>

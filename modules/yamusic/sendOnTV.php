@@ -4,15 +4,31 @@ $playlist = strip_tags($_GET['playlist']);
 $shaffle = strip_tags($_GET['shaffle']);
 $songID = strip_tags($_GET['songID']);
 
+if($shaffle) $shaffle = 0;
+
 if(empty($owner) || empty($playlist)) {
 	http_response_code(404);
 	die();
 }
 
+error_reporting(0); 
+
+chdir (dirname (__FILE__) . '/../../');
+
+include_once ('./config.php');
+include_once ('./lib/loader.php');
+
+
+require('yamusic.class.php');
+$class = new yamusic();
+
+$class->getConfig();
+
 ?>
 <html>
 	<head>
 		<script type="text/javascript"  src="/3rdparty/jquery/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript"  src="/templates/yamusic/js/jquery.fullscreen.js"></script>
 		<link rel="stylesheet" href="/3rdparty/bootstrap/css/bootstrap.min.css" type="text/css">
 		<script type="text/javascript" src="/3rdparty/bootstrap/js/bootstrap.min.js"></script>
 		<link rel="stylesheet" href="/templates/yamusic/css/line-awesome.min.css">
@@ -35,11 +51,11 @@ if(empty($owner) || empty($playlist)) {
 			songID = '&songID='+$('#playSongCommand').text();
 			
 			if(command == 'prev') {
-				urlGenerate = '/modules/yamusic/json.php?mode=track&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+'&prev='+prev+songID;
+				urlGenerate = '/modules/yamusic/json.php?mode=track&sizecover=1000x1000&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+'&prev='+prev+songID;
 			} else if(command == 'next') {
-				urlGenerate = '/modules/yamusic/json.php?mode=track&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+'&next='+next+songID;
+				urlGenerate = '/modules/yamusic/json.php?mode=track&sizecover=1000x1000&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+'&next='+next+songID;
 			} else {
-				urlGenerate = '/modules/yamusic/json.php?mode=track&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+songID;
+				urlGenerate = '/modules/yamusic/json.php?mode=track&sizecover=1000x1000&playlist='+playlist+'&count=1&owner='+onwer+'&shaffle='+isShaffle+songID;
 			}
 			
 			//Запрос нужного трека
@@ -75,7 +91,7 @@ if(empty($owner) || empty($playlist)) {
 						$('#nextTrack').show();
 						if(isShaffle != 1) $('#prevTrack').show();
 						
-						$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER+');filter: blur(35px);background-size: cover;background-position: center center;background-repeat: no-repeat;height: 100%;width: 100%;bottom: 0;right: 0;');
+						$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER_SIZED+');-webkit-filter: blur(15px);-moz-filter: blur(15px);filter: blur(15px);background-size: cover;background-position: center center;background-repeat: no-repeat;height: 100%;width: 100%;bottom: 0;right: 0;');
 						$('#backgroundCoverBlur').show();
 					})
 
@@ -134,16 +150,19 @@ if(empty($owner) || empty($playlist)) {
 		
 		
 		$(function() {
+			audio = document.querySelector('audio');
+			audio.volume = <?php echo $class->config['VOLUME_TVLG']; ?>;
+			
 			startPlayMusic();
 		});
 		</script>
 	</head>
-	<body>
+	<body id="fullDisplay">
 		<div id="backgroundCoverBlur" style=""></div>
 		
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
-				<div class="row" style="margin-top: 300px;background: white;border-radius: 0.25rem !important;border: 1px solid #e2e2e2;width: 100%;margin-right: 0px;margin-left: 0px;padding: 5px;">
+				<div class="row" style="margin-top: 340px;background: white;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 5px;">
 					<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="padding: 0px;">
 						<div style="float: left;">
 							<img id="coverSong" src="/img/modules/yamusic.png" style="width: 100px;">
@@ -166,7 +185,7 @@ if(empty($owner) || empty($playlist)) {
 						
 						<div id="currentMusicTrack" style="display: none;">0</div>
 						<div id="playSongCommand" style="display: none;"><?php echo $songID;?></div>
-						<div id="shaffleMusic" style="display: none;">0</div>
+						<div id="shaffleMusic" style="display: none;"><?php echo $shaffle;?></div>
 						<div id="ownerMusic" style="display: none;"><?php echo $owner;?></div>
 						<div id="playlistMusic" style="display: none;"><?php echo $playlist;?></div>
 						

@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '2.5 Beta';
+		$this->version = '2.6 Beta';
 		$this->checkInstalled();
 	}
 
@@ -389,22 +389,26 @@ class yamusic extends module {
 			}
 			
 			//Посмотрим в БД есть ли ТВ LG
-			$isHaveLGTV = @SQLSelect("SELECT * FROM `lgwebostv_commands` WHERE `LINKED_OBJECT` != '' AND `LINKED_PROPERTY` != '' ORDER BY `ID`");
+			$isHaveLGTV_isUse = SQLExec("SHOW TABLES FROM `db_terminal` LIKE 'lgwebostv_commands'");
 			
-			if($isHaveLGTV[0]['LINKED_OBJECT'] && $isHaveLGTV[0]['LINKED_PROPERTY']) {
-				$countArrayTV = 0;
-				foreach($isHaveLGTV as $key=>$value) {
-					if($value['TITLE'] == 'command') {
-						$out['ISHAVELGTV_ARRAY'][$countArrayTV]['DEVICE_ID'] = $value['DEVICE_ID'];
-						$out['ISHAVELGTV_ARRAY'][$countArrayTV]['OBJ'] = $value['LINKED_OBJECT'];
-						$out['ISHAVELGTV_ARRAY'][$countArrayTV]['PROP'] = $value['LINKED_PROPERTY'];
-						$countArrayTV++;
-						continue;
+			if($isHaveLGTV_isUse->num_rows == 1) {
+				$isHaveLGTV = SQLSelect("SELECT * FROM `lgwebostv_commands` WHERE `LINKED_OBJECT` != '' AND `LINKED_PROPERTY` != '' ORDER BY `ID`");
+			
+				if($isHaveLGTV[0]['LINKED_OBJECT'] && $isHaveLGTV[0]['LINKED_PROPERTY']) {
+					$countArrayTV = 0;
+					foreach($isHaveLGTV as $key=>$value) {
+						if($value['TITLE'] == 'command') {
+							$out['ISHAVELGTV_ARRAY'][$countArrayTV]['DEVICE_ID'] = $value['DEVICE_ID'];
+							$out['ISHAVELGTV_ARRAY'][$countArrayTV]['OBJ'] = $value['LINKED_OBJECT'];
+							$out['ISHAVELGTV_ARRAY'][$countArrayTV]['PROP'] = $value['LINKED_PROPERTY'];
+							$countArrayTV++;
+							continue;
+						}
 					}
+					
+					$out['ISHAVELGTV_FLAG'] = 1;
+					//$out['ISHAVELGTV_ARRAY'] = $isHaveLGTV;
 				}
-				
-				$out['ISHAVELGTV_FLAG'] = 1;
-				//$out['ISHAVELGTV_ARRAY'] = $isHaveLGTV;
 			}
 			
 			//Лечим косяк MJDM

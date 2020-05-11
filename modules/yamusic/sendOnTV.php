@@ -28,7 +28,6 @@ $class->getConfig();
 <html>
 	<head>
 		<script type="text/javascript"  src="/3rdparty/jquery/jquery-3.3.1.min.js"></script>
-		<script type="text/javascript"  src="/templates/yamusic/js/jquery.fullscreen.js"></script>
 		<link rel="stylesheet" href="/3rdparty/bootstrap/css/bootstrap.min.css" type="text/css">
 		<script type="text/javascript" src="/3rdparty/bootstrap/js/bootstrap.min.js"></script>
 		<link rel="stylesheet" href="/templates/yamusic/css/line-awesome.min.css">
@@ -70,6 +69,8 @@ $class->getConfig();
 					
 					audio.addEventListener('ended', nextPlayMusic);
 					
+					audio.addEventListener('error', nextPlayMusic);
+					
 					audio.addEventListener('canplay', function () {
 						$('#currentMusicTrack').text(responce[0].ID);
 						$('#playSongCommand').text('');
@@ -109,6 +110,7 @@ $class->getConfig();
 		function nextPlayMusic() {
 			var audio = document.getElementById("musicPlayer");
 			audio.removeEventListener('ended', nextPlayMusic);
+			audio.removeEventListener('error', nextPlayMusic);
 			$('#pausePlayMusic').hide();
 			startPlayMusic('next');
 		}
@@ -116,7 +118,7 @@ $class->getConfig();
 		function prevPlayMusic() {
 			var audio = document.getElementById("musicPlayer");
 			audio.removeEventListener('ended', nextPlayMusic);
-			
+			audio.removeEventListener('error', nextPlayMusic);
 			$('#pausePlayMusic').hide();
 			startPlayMusic('prev');
 		}
@@ -124,7 +126,7 @@ $class->getConfig();
 		function pausePlayMusic() {	
 			var audio = document.getElementById("musicPlayer");
 			audio.removeEventListener('ended', nextPlayMusic);
-			
+			audio.removeEventListener('error', nextPlayMusic);
 			//Меняем кнопки
 			$('#startPlayMusic').show();
 			$('#pausePlayMusic').hide();
@@ -189,7 +191,7 @@ $class->getConfig();
 						<i class="las la-pause-circle" style="font-size: 10rem;display:none;color: #b35b81;" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
 						<i class="las la-forward" style="font-size: 10rem;color: #5d5386;margin-left: 15px;display: none;" id="nextTrack" onClick="nextPlayMusic();"></i>
 						
-						<audio id="musicPlayer" src="" preload="auto"></audio>
+						<audio id="musicPlayer" src="" preload="auto" --autoplay-policy=no-user-gesture-required></audio>
 						
 						<div id="currentMusicTrack" style="display: none;">0</div>
 						<div id="playSongCommand" style="display: none;"><?php echo $songID;?></div>

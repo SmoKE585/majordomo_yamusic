@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.0';
+		$this->version = '3.2';
 		$this->checkInstalled();
 	}
 
@@ -126,7 +126,7 @@ class yamusic extends module {
 		//Заготовка для массива
 		foreach($selectMusic as $key => $value) {
 			$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
-			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'H:i:s');
 			$selectMusic[$key]['COVER_SIZED'] = str_ireplace("200x200", $sizeCover, $value['COVER']);;
 		}
 		
@@ -137,6 +137,14 @@ class yamusic extends module {
 		//Очистим таблицы
 		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."'");
 		SQLExec("DELETE FROM `yamusic_playlist` WHERE `OWNER` = '".$userUID."'");
+		
+		//Удаляем метки на индивидуальных плейлистах
+		$this->getConfig();
+		$this->config['PLAYLIST_ON_DAY_MODIFY_'.$userUID] = '';
+		$this->config['PLAYLIST_DEJAVU_MODIFY_'.$userUID] = '';
+		$this->config['PLAYLIST_NEWTRACKS_MODIFY_'.$userUID] = '';
+		$this->config['PLAYLIST_TAINIK_MODIFY_'.$userUID] = '';
+		$this->saveConfig();
 		
 		//Загрузка плейлистов юзера
 		require_once(DIR_MODULES.$this->name.'/client.php');
@@ -156,7 +164,7 @@ class yamusic extends module {
 			$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".dbSafe($value->kind)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
 			
 			if($selectIfDouble['PLAYLISTID'] != $value->kind) {
-				SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','".dbSafe($value->kind)."','".dbSafe($value->title)."','".dbSafe($value->visibility)."','".dbSafe(date('d.m.Y H:i:s', strtotime($value->created)))."','".dbSafe(date('H:m:i', $value->durationMs*1000))."','".dbSafe($coverLoad)."');");
+				SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','".dbSafe($value->kind)."','".dbSafe($value->title)."','".dbSafe($value->visibility)."','".dbSafe(date('d.m.Y H:i:s', strtotime($value->modified)))."','".$value->durationMs."','".dbSafe($coverLoad)."');");
 			}
 
 		}
@@ -167,7 +175,7 @@ class yamusic extends module {
 			SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','-1".$userUID."','Мне нравится','private','".dbSafe(date('d.m.Y H:i:s', time()))."','','https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png');");
 		}
 		
-		//$this->redirect("?");
+		$this->redirect("?");
 	}
 	
 	function loadUserMusic($userToken, $userUID, $playlistID) {
@@ -238,23 +246,9 @@ class yamusic extends module {
 		return $link;
 	}
 	
-	function microTimeConvert($ms) {
-		//Функция переводит Яндекс.Милисекунды в нормальное время (Сделано через жопу)
-		$ms = floor($ms*1000/60);
-		$countSimbol = mb_strlen($ms);
-		
-		if($countSimbol == 7) {
-			$minutes = substr($ms, 0, 1);
-			$seconds = substr($ms, 1, 2);
-			if($seconds >= 60) {
-				$seconds = $seconds-60;
-				$minutes = $minutes+1;
-			}
-		}
-		if($minutes < 10) $minutes = '0'.$minutes;
-		if($seconds < 10) $seconds = '0'.floor($seconds);
-		
-		return $minutes.':'.$seconds;
+	function microTimeConvert($ms, $format) {
+		$ms = date($format, mktime(0, 0, $ms/1000));
+		return $ms;
 	}
 	
 	function changeActiveUser($setUserID) {
@@ -482,17 +476,17 @@ class yamusic extends module {
 			$selectPlaylist = SQLSelect("SELECT * FROM `yamusic_playlist` WHERE `OWNER` = '".$loadUserInfo['UID']."' ORDER BY `PLAYLISTID` LIMIT 50");
 			
 			if($selectPlaylist[0]['PLAYLISTID']) {
+				//В выдачу
+				$out['PLAYLIST'] = $selectPlaylist;
 				//Выгрузим плейлисты пользователя
 				$countPlaylist = 0;		
 				foreach($selectPlaylist as $key => $value) {
+					$out['PLAYLIST'][$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'H:i:s');
 					//Счетчик
 					$countPlaylist++;
 				}
 				
-				//В выдачу
-				$out['PLAYLIST'] = $selectPlaylist;
-				$out['TOTAL_PLAYLIST'] = $countPlaylist;
-				
+				$out['TOTAL_PLAYLIST'] = $countPlaylist;				
 			} else {
 				//Плейлистов в БД нет, загружаем
 				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
@@ -547,7 +541,7 @@ class yamusic extends module {
 					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
 					
 					foreach($selectMusic as $key => $value) {
-						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'i:s');
 						$countMusicList++;
 					}
 					
@@ -588,7 +582,7 @@ class yamusic extends module {
 					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
 					
 					foreach($selectMusic as $key => $value) {
-						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'i:s');
 						$countMusicList++;
 					}
 					
@@ -629,7 +623,7 @@ class yamusic extends module {
 					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
 					
 					foreach($selectMusic as $key => $value) {
-						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'i:s');
 						$countMusicList++;
 					}
 					
@@ -670,7 +664,7 @@ class yamusic extends module {
 					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
 					
 					foreach($selectMusic as $key => $value) {
-						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'i:s');
 						$countMusicList++;
 					}
 					
@@ -691,7 +685,7 @@ class yamusic extends module {
 					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
 					
 					foreach($selectMusic as $key => $value) {
-						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'i:s');
 						$countMusicList++;
 					}
 					
@@ -751,6 +745,25 @@ class yamusic extends module {
 	
 	function usual(&$out) {
 		$this->admin($out);
+		$this->getConfig();
+		
+		//Получим UID активное пользователя и пока только мне нравится
+		$loadAllUsers = $this->loadAllUser();
+		//Найдем основного юзера
+		foreach($loadAllUsers as $value) {
+			if($value['SELECTED'] == 1) {
+				$mainUser = $value['UID'];
+				break;
+			}
+		}
+		
+		$out['SCENE_PLAYER_UID'] = $mainUser;
+		$out['SCENE_PLAYER_PLAYLIST'] = '-1'.$mainUser;
+		
+		$out['FRAME_USUAL_SETVOLUME'] = $this->config['VOLUME_PUANDSCENE'];
+		if(empty($out['FRAME_USUAL_SETVOLUME'])) $out['FRAME_USUAL_SETVOLUME'] = 1;
+		
+		$out['VERSION'] = $this->version;
 	}
 
 	function install($data='') {

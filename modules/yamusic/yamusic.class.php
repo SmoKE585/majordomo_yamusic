@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '2.8 Beta';
+		$this->version = '3.0';
 		$this->checkInstalled();
 	}
 
@@ -284,7 +284,115 @@ class yamusic extends module {
 		$playlistOwner = $playlistOnDayArray->blocks[0]->entities[0]->data->data->owner->uid;
 		
 		//Удалим старые треки из БД
-		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$playlistOwner."' AND `PLAYLISTID` = '".$playlistID."'");
+		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+		//Разные даты, а значит надо заного обновлять
+		$loadUserMusic = $newDOM->usersPlaylists($playlistID, $playlistOwner);
+		$loadUserMusic = $loadUserMusic->result[0]->tracks;
+		
+		foreach($loadUserMusic as $key => $value) {
+			//Получим ID треков
+			$idTrack = $value->id;
+			//Получим обложку и название
+			$getCover = $newDOM->tracks($idTrack);
+			
+			//Если нет инфы о треке - пропускае, он удален
+			if(!$getCover[0]->durationMs) continue;
+			
+			//Генерируем массив песен
+			$cover = mb_strlen($getCover[0]->coverUri)-2;
+			$cover = substr($getCover[0]->coverUri, 0, $cover);
+			
+			//Записываем НО меняем владельца плейлиста
+			SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+		}
+		
+		return;
+	}
+	
+	function loadUserMusicDejavuPlaylist($userToken, $userUID, $reload = 0) {
+		//Запрашиваем плейлист дня
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+		$playlistOnDayArray = $newDOM->landing('personalplaylists');
+		$playlistID = $playlistOnDayArray->blocks[0]->entities[2]->data->data->kind;
+		$playlistModify = $playlistOnDayArray->blocks[0]->entities[2]->data->data->modified;
+		$playlistOwner = $playlistOnDayArray->blocks[0]->entities[2]->data->data->owner->uid;
+		
+		//Удалим старые треки из БД
+		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+		//Разные даты, а значит надо заного обновлять
+		$loadUserMusic = $newDOM->usersPlaylists($playlistID, $playlistOwner);
+		$loadUserMusic = $loadUserMusic->result[0]->tracks;
+		
+		foreach($loadUserMusic as $key => $value) {
+			//Получим ID треков
+			$idTrack = $value->id;
+			//Получим обложку и название
+			$getCover = $newDOM->tracks($idTrack);
+			
+			//Если нет инфы о треке - пропускае, он удален
+			if(!$getCover[0]->durationMs) continue;
+			
+			//Генерируем массив песен
+			$cover = mb_strlen($getCover[0]->coverUri)-2;
+			$cover = substr($getCover[0]->coverUri, 0, $cover);
+			
+			//Записываем НО меняем владельца плейлиста
+			SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+		}
+		
+		return;
+	}
+	
+	function loadUserMusicNewTracksPlaylist($userToken, $userUID, $reload = 0) {
+		//Запрашиваем плейлист дня
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+		$playlistOnDayArray = $newDOM->landing('personalplaylists');
+		$playlistID = $playlistOnDayArray->blocks[0]->entities[1]->data->data->kind;
+		$playlistModify = $playlistOnDayArray->blocks[0]->entities[1]->data->data->modified;
+		$playlistOwner = $playlistOnDayArray->blocks[0]->entities[1]->data->data->owner->uid;
+		
+		//Удалим старые треки из БД
+		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+		//Разные даты, а значит надо заного обновлять
+		$loadUserMusic = $newDOM->usersPlaylists($playlistID, $playlistOwner);
+		$loadUserMusic = $loadUserMusic->result[0]->tracks;
+		
+		foreach($loadUserMusic as $key => $value) {
+			//Получим ID треков
+			$idTrack = $value->id;
+			//Получим обложку и название
+			$getCover = $newDOM->tracks($idTrack);
+			
+			//Если нет инфы о треке - пропускае, он удален
+			if(!$getCover[0]->durationMs) continue;
+			
+			//Генерируем массив песен
+			$cover = mb_strlen($getCover[0]->coverUri)-2;
+			$cover = substr($getCover[0]->coverUri, 0, $cover);
+			
+			//Записываем НО меняем владельца плейлиста
+			SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+		}
+		
+		return;
+	}
+	
+	function loadUserMusicTainikPlaylist($userToken, $userUID, $reload = 0) {
+		//Запрашиваем плейлист дня
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+		$playlistOnDayArray = $newDOM->landing('personalplaylists');
+		$playlistID = $playlistOnDayArray->blocks[0]->entities[4]->data->data->kind;
+		$playlistModify = $playlistOnDayArray->blocks[0]->entities[4]->data->data->modified;
+		$playlistOwner = $playlistOnDayArray->blocks[0]->entities[4]->data->data->owner->uid;
+		
+		//Удалим старые треки из БД
+		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
 		//Разные даты, а значит надо заного обновлять
 		$loadUserMusic = $newDOM->usersPlaylists($playlistID, $playlistOwner);
 		$loadUserMusic = $loadUserMusic->result[0]->tracks;
@@ -447,6 +555,129 @@ class yamusic extends module {
 					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
 					$out['PLAYLIST_CURRENT'] = $playlistOnDay_ID;
 					$out['PLAYLIST_CURRENT_NAME'] = 'Плейлист дня';
+					$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
+					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
+				}
+			} else if($this->mode == 'playlistDejavu') {
+				//Запрашиваем плейлист дежавю
+				require_once(DIR_MODULES.$this->name.'/client.php');
+				$newDOM = new Client($loadUserInfo['TOKEN']);
+				//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+				$playlistOnDay = $newDOM->landing('personalplaylists');
+				$playlistOnDay_ID = $playlistOnDay->blocks[0]->entities[2]->data->data->kind;
+				$playlistOnDay_Modify = $playlistOnDay->blocks[0]->entities[2]->data->data->modified;
+				$playlistOnDay_Owner = $playlistOnDay->blocks[0]->entities[2]->data->data->owner->uid;
+				
+				//Сравним тот же плейлист пытаются выкачать или нет
+				$this->getConfig();
+				$oldPlaylist_Modify = $this->config['PLAYLIST_DEJAVU_MODIFY_'.$loadUserInfo['UID']];
+			
+				if($oldPlaylist_Modify != $playlistOnDay_Modify || $this->view_mode == 'reload') {
+					//Разные даты, а значит надо заного обновлять
+					$this->loadUserMusicDejavuPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+					
+					$this->config['PLAYLIST_DEJAVU_MODIFY_'.$loadUserInfo['UID']] = $playlistOnDay_Modify;
+					$this->saveConfig();
+					
+					$this->redirect("?&md=yamusic&inst=adm&mode=playlistDejavu");
+				} else {
+					$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					//Выгрузим музыку пользователя
+					$countMusicList = 0;	
+					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					foreach($selectMusic as $key => $value) {
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$countMusicList++;
+					}
+					
+					//В выдачу
+					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+					$out['PLAYLIST_CURRENT'] = $playlistOnDay_ID;
+					$out['PLAYLIST_CURRENT_NAME'] = 'Дежавю';
+					$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
+					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
+				}
+			} else if($this->mode == 'playlistNewTracks') {
+				//Запрашиваем плейлист дежавю
+				require_once(DIR_MODULES.$this->name.'/client.php');
+				$newDOM = new Client($loadUserInfo['TOKEN']);
+				//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+				$playlistOnDay = $newDOM->landing('personalplaylists');
+				$playlistOnDay_ID = $playlistOnDay->blocks[0]->entities[1]->data->data->kind;
+				$playlistOnDay_Modify = $playlistOnDay->blocks[0]->entities[1]->data->data->modified;
+				$playlistOnDay_Owner = $playlistOnDay->blocks[0]->entities[1]->data->data->owner->uid;
+				
+				//Сравним тот же плейлист пытаются выкачать или нет
+				$this->getConfig();
+				$oldPlaylist_Modify = $this->config['PLAYLIST_NEWTRACKS_MODIFY_'.$loadUserInfo['UID']];
+			
+				if($oldPlaylist_Modify != $playlistOnDay_Modify || $this->view_mode == 'reload') {
+					//Разные даты, а значит надо заного обновлять
+					$this->loadUserMusicNewTracksPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+					
+					$this->config['PLAYLIST_NEWTRACKS_MODIFY_'.$loadUserInfo['UID']] = $playlistOnDay_Modify;
+					$this->saveConfig();
+					
+					$this->redirect("?&md=yamusic&inst=adm&mode=playlistNewTracks");
+				} else {
+					$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					//Выгрузим музыку пользователя
+					$countMusicList = 0;	
+					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					foreach($selectMusic as $key => $value) {
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$countMusicList++;
+					}
+					
+					//В выдачу
+					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+					$out['PLAYLIST_CURRENT'] = $playlistOnDay_ID;
+					$out['PLAYLIST_CURRENT_NAME'] = 'Дежавю';
+					$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
+					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
+				}
+			} else if($this->mode == 'playlistTainik') {
+				//Запрашиваем плейлист дежавю
+				require_once(DIR_MODULES.$this->name.'/client.php');
+				$newDOM = new Client($loadUserInfo['TOKEN']);
+				//ИД плейлиста, сохраним его в конфиг, чтобы потом удалить
+				$playlistOnDay = $newDOM->landing('personalplaylists');
+				$playlistOnDay_ID = $playlistOnDay->blocks[0]->entities[4]->data->data->kind;
+				$playlistOnDay_Modify = $playlistOnDay->blocks[0]->entities[4]->data->data->modified;
+				$playlistOnDay_Owner = $playlistOnDay->blocks[0]->entities[4]->data->data->owner->uid;
+				
+				//Сравним тот же плейлист пытаются выкачать или нет
+				$this->getConfig();
+				$oldPlaylist_Modify = $this->config['PLAYLIST_TAINIK_MODIFY_'.$loadUserInfo['UID']];
+			
+				if($oldPlaylist_Modify != $playlistOnDay_Modify || $this->view_mode == 'reload') {
+					//Разные даты, а значит надо заного обновлять
+					$this->loadUserMusicTainikPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
+					
+					$this->config['PLAYLIST_TAINIK_MODIFY_'.$loadUserInfo['UID']] = $playlistOnDay_Modify;
+					$this->saveConfig();
+					
+					$this->redirect("?&md=yamusic&inst=adm&mode=playlistTainik");
+				} else {
+					$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					//Выгрузим музыку пользователя
+					$countMusicList = 0;	
+					$countShowMusicList = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistOnDay_ID."'");
+					
+					foreach($selectMusic as $key => $value) {
+						$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION']);
+						$countMusicList++;
+					}
+					
+					//В выдачу
+					$out['PLAYLIST_MUSICLIST'] = $selectMusic;
+					$out['PLAYLIST_CURRENT'] = $playlistOnDay_ID;
+					$out['PLAYLIST_CURRENT_NAME'] = 'Дежавю';
 					$out['TOTAL_PLAYLIST_TRACKS'] = $countShowMusicList['COUNT(`ID`)'];
 					$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $countMusicList;
 				}

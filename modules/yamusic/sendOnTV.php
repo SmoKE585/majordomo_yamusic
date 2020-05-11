@@ -39,6 +39,7 @@ $class->getConfig();
 			$('#startPlayMusic').hide();
 			$('#nextTrack').hide();
 			$('#prevTrack').hide();
+			$('#shaffleBotton').hide();
 			$('#startPlayMusicLoad').show();
 			
 			//Узнаем, чью музыку запускать
@@ -64,15 +65,6 @@ $class->getConfig();
 				success: function(responce) {
 					//Вставляем ссылку
 					$('#musicPlayer').attr('src', responce[0].LINK);
-					//Инфо о треке
-					if(responce[0].NAMESONG.length > 16) {
-						$('#songName').html('<marquee behavior="alternate" direction="left" style="margin-bottom: -6px;" scrollamount="3">'+responce[0].NAMESONG+'</marquee>');
-					} else {
-						$('#songName').html(responce[0].NAMESONG);
-					}
-					
-					$('#artistsName').html(responce[0].ARTISTS);
-					$('#coverSong').attr('src', responce[0].COVER);
 					
 					var audio = document.getElementById("musicPlayer");
 					
@@ -80,15 +72,27 @@ $class->getConfig();
 					
 					audio.addEventListener('canplay', function () {
 						$('#currentMusicTrack').text(responce[0].ID);
+						$('#playSongCommand').text('');
 					})
 					
 					audio.addEventListener('loadedmetadata', function () {
+						//Инфо о треке
+						if(responce[0].NAMESONG.length > 16) {
+							$('#songName').html('<marquee behavior="alternate" direction="left" style="margin-bottom: -6px;" scrollamount="3">'+responce[0].NAMESONG+'</marquee>');
+						} else {
+							$('#songName').html(responce[0].NAMESONG);
+						}
+						
+						$('#artistsName').html(responce[0].ARTISTS);
+						$('#coverSong').attr('src', responce[0].COVER);
+					
 						//Меняем кнопки
 						$('#startPlayMusicLoad').hide();
 						//Воспроизводим после того как метаданные загрузятся
 						$('#musicPlayer').get(0).play();
 						$('#pausePlayMusic').show();
 						$('#nextTrack').show();
+						$('#shaffleBotton').show();
 						if(isShaffle != 1) $('#prevTrack').show();
 						
 						$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER_SIZED+');-webkit-filter: blur(15px);-moz-filter: blur(15px);filter: blur(15px);background-size: cover;background-position: center center;background-repeat: no-repeat;height: 100%;width: 100%;bottom: 0;right: 0;');
@@ -141,10 +145,12 @@ $class->getConfig();
 			
 			if(shaffleStatus == 1) {
 				$('#shaffleMusic').text('0');
-				$('#shaffleMusicTrackIcon').attr('style', '');
+				$('#shaffleMusicTrackIcon').attr('style', 'font-size: 6rem;margin-top: 20px;');
+				$('#prevTrack').show();
 			} else {
 				$('#shaffleMusic').text('1');
-				$('#shaffleMusicTrackIcon').attr('style', 'background: orange;');
+				$('#shaffleMusicTrackIcon').attr('style', 'font-size: 6rem;margin-top: 20px;color: orange;');
+				$('#prevTrack').hide();
 			}
 		}
 		
@@ -152,6 +158,8 @@ $class->getConfig();
 		$(function() {
 			audio = document.querySelector('audio');
 			audio.volume = <?php echo $class->config['VOLUME_TVLG']; ?>;
+			
+			<?php if($shaffle == 1) echo "$('#shaffleMusicTrackIcon').attr('style', 'font-size: 6rem;margin-top: 20px;color: orange;');"; ?>
 			
 			startPlayMusic();
 		});
@@ -162,7 +170,7 @@ $class->getConfig();
 		
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
-				<div class="row" style="margin-top: 340px;background: white;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 5px;">
+				<div class="row" style="margin-top: 340px;background: white;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 20px;">
 					<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="padding: 0px;">
 						<div style="float: left;">
 							<img id="coverSong" src="/img/modules/yamusic.png" style="width: 100px;">
@@ -175,7 +183,7 @@ $class->getConfig();
 					<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12 text-center" style="padding: 0px;">
 						<i class="las la-backward" style="font-size: 10rem;color: #5d5386;margin-right: 15px;display: none;" id="prevTrack" onClick="prevPlayMusic();"></i>
 						
-						<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad" style="width: 70px;vertical-align: top;display: none;">
+						<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad" style="width: 100px;vertical-align: top;display: none;">
 						<i class="las la-play" style="font-size: 10rem;color: #5cb85c;" id="startPlayMusic" onclick="startPlayMusic();"></i>
 						
 						<i class="las la-pause-circle" style="font-size: 10rem;display:none;color: #b35b81;" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
@@ -191,7 +199,7 @@ $class->getConfig();
 						
 					</div>
 					<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12 text-right" style="padding: 0px;">
-						
+						<i class="las la-random" id="shaffleMusicTrackIcon" onclick="shaffleMusicTrack();" style="font-size: 6rem;margin-top: 20px;"></i>
 					</div>
 				</div>
 			</div>

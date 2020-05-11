@@ -13,14 +13,15 @@ require('yamusic.class.php');
 
 //?action=playOnTVPlaylist&obj='+object+'&prop='+prop+'&playlist='+playlist+'&owner='+owner,
 
-if($_GET['action'] == 'playOnTVPlaylist') {
+if($_GET['action'] == 'playOnTV') {
 	$action = strip_tags($_GET['action']);
 	$obj = strip_tags($_GET['obj']);
 	$prop = strip_tags($_GET['prop']);
 	$playlist = strip_tags($_GET['playlist']);
 	$owner = strip_tags($_GET['owner']);
+	$songID = strip_tags($_GET['songID']);
 	
-	$generateLink = 'browser|http://'.$_SERVER['SERVER_ADDR'].'/modules/yamusic/sendOnTV.php?playlist='.$playlist.'&owner='.$owner.'&shaffle=0';
+	$generateLink = 'browser|http://'.$_SERVER['SERVER_ADDR'].'/modules/yamusic/sendOnTV.php?playlist='.$playlist.'&owner='.$owner.'&shaffle=0&songID='.$songID;
 	
 	sg($obj.'.'.$prop, $generateLink);
 }

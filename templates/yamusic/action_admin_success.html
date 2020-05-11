@@ -63,13 +63,13 @@
 		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
 			<a href="?mode=playlistOnDay"><img src="/templates/yamusic/img/playlist_icon/onday.png" style="width: 95%;"></a>
 		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;opacity: 0.1;">
-			<a href="?mode=playlistNewTrack"><img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;"></a>
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
+			<a href="?mode=playlistNewTracks"><img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;"></a>
 		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;opacity: 0.1;">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
 			<a href="?mode=playlistDejavu"><img src="/templates/yamusic/img/playlist_icon/dejavu.gif" style="width: 95%;"></a>
 		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;opacity: 0.1;">
+		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
 			<a href="?mode=playlistTainik"><img src="/templates/yamusic/img/playlist_icon/tainik.gif" style="width: 95%;"></a>
 		</div>
 		</div>
@@ -86,17 +86,17 @@
 			</a>
 		</div>--->
 		<script>
-		function sendOnTV(objProp) {
+		function sendOnTV(objProp, songID = '') {
 			objPropSplit = objProp.split('.');
 			object = objPropSplit[0];
 			prop = objPropSplit[1];
 			playlist = '[#PLAYLIST_CURRENT#]';
 			owner = '[#ACCOUNT_UID#]';
-			
-			generateLink = 'browser|http://[#SERVER_IP#]/modules/yamusic/sendOnTV.php?playlist='+playlist+'&owner='+owner+'&shaffle=0';
+			shaffle = $('#shaffleMusic').text();
+			if(songID) songID = '&songID='+songID;
 			
 			$.getJSON({
-				url: '/modules/yamusic/ajax.php?action=playOnTVPlaylist&obj='+object+'&prop='+prop+'&playlist='+playlist+'&owner='+owner,
+				url: '/modules/yamusic/ajax.php?action=playOnTV&obj='+object+'&prop='+prop+'&playlist='+playlist+'&owner='+owner+songID,
 				success: function(responce) {
 					alert('Плейлист отправлен! Внимание на телевизор! =)');
 				},
@@ -337,8 +337,8 @@
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#] - [#NAMESONG#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;width: 40%;text-align: right;">
-							<i class="las la-tv" onclick="alert('Отправить на ТВ LGWEBOS. В разработке');" style="font-size: 4rem;"></i>
-							<i class="las la-cloud-upload-alt" onclick="alert('Отправить на терминал. В разработке');" style="font-size: 4rem;"></i>
+							<i class="las la-tv showSendOnTVAllIcon" onclick="sendOnTV($('#selectForTV').val(), '[#SONGID#]');" style="font-size: 4rem;display:none;"></i>
+							<!--- <i class="las la-cloud-upload-alt" onclick="alert('Отправить на терминал. В разработке');" style="font-size: 4rem;"></i> --->
 							
 							<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad_[#SONGID#]" style="width: 40px;vertical-align: top;display: none;">
 							
@@ -357,21 +357,22 @@
 		<ul class="list-group">
 			<li class="list-group-item">
 				<span style="float: right;background-color: white;padding: 0px;color: black;">
-					<i class="las la-tv" style="font-size: 2rem;color: black;"></i>
-					<select style="vertical-align: text-bottom;" [#if ISHAVELGTV_FLAG != 1#]disabled[#endif#] onChange="sendOnTV($(this).val());">
-					[#if ISHAVELGTV_FLAG != 1#]<option>Нет доступных ТВ</option>[#else#]<option>На какой ТВ отправить?</option>[#endif#]
+					<select style="vertical-align: text-bottom;" [#if ISHAVELGTV_FLAG != 1#]disabled[#endif#] onChange="if(!$(this).val()) { $('#playOnTVIcon').hide();$('.showSendOnTVAllIcon').hide(); } else { $('#playOnTVIcon').show();$('.showSendOnTVAllIcon').show(); }" id="selectForTV">
+					[#if ISHAVELGTV_FLAG != 1#]<option>Нет доступных ТВ</option>[#else#]<option value="">На какой ТВ отправить?</option>[#endif#]
 					[#begin ISHAVELGTV_ARRAY#]
 						<option value="[#OBJ#].[#PROP#]">ТВ №[#DEVICE_ID#] -> [#OBJ#].[#PROP#]</option>
 					[#end ISHAVELGTV_ARRAY#]
 					</select>
+					
+					<i class="las la-play" style="font-size: 2rem;color: #5cb85c;display:none;cursor:pointer" id="playOnTVIcon" onclick="sendOnTV($('#selectForTV').val());"></i>
 				</span>
-				Отправить на ТВ
+				<i class="las la-tv" style="font-size: 2rem;color: black;vertical-align: top;"></i> Отправить на ТВ
 			</li>
 			<li class="list-group-item">
 				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;" data-toggle="modal" data-target="#volumeControl">
-					<i class="las la-volume-up" style="font-size: 2.3"></i> <span style="vertical-align: top;">Настроить</span>
+					<span style="vertical-align: top;">Настроить</span>
 				</span>
-				Громкость
+				<i class="las la-volume-up" style="font-size: 2rem;color: black;vertical-align: top;"></i> Громкость
 			</li>
 		</ul>
 	</div>

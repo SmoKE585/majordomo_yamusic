@@ -247,7 +247,7 @@ class yamusic extends module {
 	}
 	
 	function microTimeConvert($ms, $format) {
-		$ms = date($format, mktime(0, 0, $ms/1000));
+		((int) $ms != '') ? $ms = date($format, mktime(0, 0, $ms/1000)) : $ms = 0;
 		return $ms;
 	}
 	

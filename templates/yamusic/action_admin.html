@@ -29,13 +29,15 @@
 		Логины и пароли остаются только у Вас и никуда не передаются, доступ к сервису через токен.<br>
 		Логин и пароль нужен только для получения токена.<br>
 		<b style="color: red;">Важно!</b> Яндекс может прислать Вам уведомление о подозрительном входе!
+		<br><br>
+		Мы не хотим лишать Яндекс заработка на рекламе и создавать ему проблем с авторским правом,<br>поэтому работа модуля возможна только при наличии подписки Яндекс.Плюс.<br>Так же напоминаем, что скачать музыку используя модуль невозможно, только потоковое прослушивание.
 		</p>
 		[#if ERRORSUBSCRIBE == 1#]
 			<div class="alert alert-warning text-center" role="alert" style="margin-top: 50px;margin-bottom: 0px;color: white;font-size: 2rem;border-radius: 30px;background: linear-gradient(60deg, #5340e7, #7259c1, #8f7099, #aa8774, #c79e4c, #d8ab36);">
 				Проблема с вашей подпиской =( Мы обнаружили, что у Вас не активна подписка на Яндекс.Плюс.<br>
 				Работа модуля без подписки невозможна.
 				<div class="text-center" style="margin-top: 15px">
-					<a href="https://plus.yandex.ru/" target="_blank" style="padding: 20px;color: white;background: #2400a4;font-size: 2rem;border-radius: 100px 20px 20px 100px;text-decoration: none;"><img src="https://spasibosberbank.ru/storage/yandexplus_logo_pkl.png" style="width: 100px;"> Купить подписку Я.Плюс</a>
+					<a href="https://plus.yandex.ru/" target="_blank" style="padding: 20px;color: white;background: #2400a4;font-size: 2rem;border-radius: 100px 20px 20px 100px;text-decoration: none;"><img src="/templates/yamusic/img/plus_cer.png" style="width: 100px;"> Купить подписку Я.Плюс</a>
 				</div>
 			</div>
 		[#endif#]
@@ -48,17 +50,21 @@
 						Ошибка авторизации! Введен неверный логин или пароль...
 					</div>
 				[#endif#]
-				<form action="?" method="post" enctype="multipart/form-data">
-					<label style="margin-top: 15px;">Логин от Яндекс.Музыка</label>
-					<input type="text" class="form-control" style="outline: none;border-radius: 5px;" name="loginYandex" placeholder="Логин, без @yandex.ru" value="">
-					<label style="margin-top: 15px;">Пароль от Яндекс.Музыки</label>
-					<input type="password" class="form-control" style="outline: none;border-radius: 5px;" name="passwordYandex" placeholder="" value="">
-					<center style="margin-top: 20px;margin-bottom: 20px;">
-						<button type="submit" class="btn btn-success"><i class="las la-user-tie"></i> Авторизоваться</button>
-					</center>
-					
-					<input type="hidden" name="mode" value="auth">
-				</form>
+			<div id="loadNewUser" style="display:none;text-align: center;padding: 5px;">
+				<img src="/templates/yamusic/img/load.gif">
+				<p>Загружаем информацию о новом аккаунте! Если логин и пароль верны, модуль загрузит ваши плейлисты и музыку из них. <b>Операция долгая</b> - не закрывайте страницу!</p>
+			</div>
+			<form action="?" method="post" enctype="multipart/form-data" id="loadNewUserForm">
+				<label style="margin-top: 15px;">Логин от Яндекс.Музыка</label>
+				<input type="text" class="form-control" style="outline: none;border-radius: 5px;" name="loginYandex" placeholder="Логин, без @yandex.ru" value="">
+				<label style="margin-top: 15px;">Пароль от Яндекс.Музыки</label>
+				<input type="password" class="form-control" style="outline: none;border-radius: 5px;" name="passwordYandex" placeholder="" value="">
+				<center style="margin-top: 20px;margin-bottom: 20px;">
+					<button type="submit" class="btn btn-success" onclick="$('#loadNewUser').show();$('#loadNewUserForm').hide();$('.alert').hide();"><i class="las la-user-tie"></i> Авторизоваться</button>
+				</center>
+				
+				<input type="hidden" name="mode" value="auth">
+			</form>
 			</div>
 		</div>
 	</div>

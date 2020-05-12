@@ -33,12 +33,20 @@
 				<span class="badge" style="background-color: white;">[#ACCOUNT_AVAIL#]</span>
 				Статус подписки
 			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_SUB_END_DATE#]</span>
+				Заканчивается
+			</li>
+			<li class="list-group-item">
+				<span class="badge">[#ACCOUNT_SUB_HOWPAY#] [#ACCOUNT_SUB_HOWPAY_CURR#]</span>
+				Стоимость
+			</li>
 		</ul>
 		<div id="addNewUSer" style="display:none;">
 			<hr>
 			<div id="loadNewUser" style="display:none;text-align: center;background: #ececec;padding: 5px;border-radius: 10px;border: 1px solid #FF9800;">
 				<img src="/templates/yamusic/img/load.gif">
-				<p>Загружаем информацию о новом аккаунте! Если логин и пароль верны, модуль загрузит ваши плейлисты и музыку из них. Операция долгая - не закрывайте страницу!</p>
+				<p>Загружаем информацию о новом аккаунте! Если логин и пароль верны, модуль загрузит ваши плейлисты и музыку из них. <b>Операция долгая</b> - не закрывайте страницу!</p>
 			</div>
 			<form action="?" method="post" enctype="multipart/form-data" id="loadNewUserForm">
 				<label>Логин от Яндекс.Музыка</label>
@@ -316,15 +324,24 @@
 		</div>
 	</div>
 	<div class="col-xl-5 col-lg-5 col-md-5 col-sm-12 col-12">
+		[#if ERRORSUBSCRIBE == 1#]
+			<div class="alert alert-warning text-center" role="alert" style="margin-bottom: 0px;color: white;font-size: 1.7rem;border-radius: 30px;background: linear-gradient(60deg, #5340e7, #7259c1, #8f7099, #aa8774, #c79e4c, #d8ab36);">
+				Проблема с подпиской. Мы обнаружили, что у введеного пользователя не активна подписка на Яндекс.Плюс.<br>
+				Работа модуля без подписки невозможна, он небыл добавлен.
+				<div class="text-center" style="margin-top: 15px">
+					<a href="https://plus.yandex.ru/" target="_blank" style="padding: 20px;color: white;background: #2400a4;font-size: 2rem;border-radius: 100px 20px 20px 100px;text-decoration: none;"><img src="/templates/yamusic/img/plus_cer.png" style="width: 100px;"> Купить подписку Я.Плюс</a>
+				</div>
+			</div>
+		[#endif#]
 		[#if LOADPLAYLISTDONE == 1#]
 			<div class="text-center" style="margin-top: 20px">
 				<i class="las la-check-square" style="font-size: 10rem;color: green;"></i>
 				<div>
-					Ваши <b>плейлисты загружены</b>! Теперь при выборе плейлиста модуль скачает список треков этого плейлиста с сервера Яндекс и запишет их в базу данных. Скачивание списка музыки может занять много времени, т.к. модуль обрабатывает каждый трек.
+					Ваши <b>данные загружены</b>! Теперь при выборе плейлиста модуль скачает список треков этого плейлиста с сервера Яндекс и запишет их в базу данных. Скачивание списка музыки может занять много времени, т.к. модуль обрабатывает каждый трек.
 					<br>
 					В дальнейшем открытие скаченного плейлиста будет происходить быстро, т.к. все данные будут в вашей БД.
 					<br><br>
-					Выбирайте нужный плейлист и погнали! =)
+					Загружайте плейлисты и погнали! =)
 				</div>
 			</div>
 		[#else#]

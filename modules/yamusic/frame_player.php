@@ -12,6 +12,13 @@ $owner = $_GET['owner'];
 $autoplay = $_GET['autoplay'];
 $shaffle = $_GET['shaffle'];
 $version = $_GET['version'];
+$blur = $_GET['blur'];
+$width = $_GET['width'];
+$height = $_GET['height'];
+$stylePlayer = $_GET['styleplayer'];
+
+if(empty($stylePlayer)) $stylePlayer = 'height: 150px; width: 300px; padding: 15px; border-radius: 20px; bottom: 0px; right: 0px; margin-right: 10px;';
+if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 
 ?>
 <html>
@@ -68,6 +75,9 @@ $version = $_GET['version'];
 					//Вставляем ссылку
 					$('#musicPlayer').attr('src', responce[0].LINK);
 					
+					$('#informationCoverSongDIV').show();
+					$('#volumeControlDIV').hide();
+					
 					var audio = document.getElementById("musicPlayer");
 					
 					audio.addEventListener('ended', nextPlayMusic);
@@ -91,7 +101,13 @@ $version = $_GET['version'];
 						
 						$('#shaffleBotton').show();
 						$('#volumeBotton').show();
-						
+						<?php 
+						if($blur == 1) {
+							echo "$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER+');filter: blur(15px);background-size: cover;background-position: center center;z-index: 9;background-repeat: no-repeat;height: 180px;width: 300px;padding: 15px;border-radius: 20px;');";
+							echo "$('#playerBlock').attr('style', 'position: absolute;z-index: 99; ".$stylePlayer."');";
+							echo "$('#backgroundCoverBlur').show();";
+						}
+						?>
 						//Воспроизводим после того как метаданные загрузятся
 						$('#musicPlayer').get(0).play();
 						$('#pausePlayMusic').show();
@@ -119,6 +135,9 @@ $version = $_GET['version'];
 			var audio = document.getElementById("musicPlayer");
 			audio.removeEventListener('ended', nextPlayMusic);
 			
+			$('#informationCoverSongDIV').show();
+			$('#volumeControlDIV').hide();
+			
 			$('#pausePlayMusic').hide();
 			startPlayMusic('prev');
 		}
@@ -135,7 +154,10 @@ $version = $_GET['version'];
 			//Пауза
 			$('#musicPlayer').get(0).pause();
 			$('#musicPlayer').removeAttr('src');
-						
+			<?php if($blur == 1) echo "$('#backgroundCoverBlur').hide();";?>
+			$('#informationCoverSongDIV').show();
+			$('#volumeControlDIV').hide();
+			
 			//Инфо о треке
 			$('#songName').html('Яндекс.Музыка');
 			$('#artistsName').html('v.<?php echo $version; ?>');
@@ -144,6 +166,9 @@ $version = $_GET['version'];
 		
 		function shaffleMusicTrack() {
 			shaffleStatus = $('#shaffleMusic').text();
+			
+			$('#informationCoverSongDIV').show();
+			$('#volumeControlDIV').hide();
 			
 			if(shaffleStatus == 1) {
 				$('#shaffleMusic').text('0');
@@ -191,8 +216,13 @@ $version = $_GET['version'];
 		});
 		</script>
 	</head>
-	<body>
-		<div style="background: #ffd18e; z-index: 99; height: 150px; width: 300px; padding: 15px; border-radius: 20px 20px 0px 0px; bottom: 0px; right: 0px; margin-right: 10px;">
+	<body style="background-color: transparent;border: none;">
+		<?php
+		if($blur == 1) {
+			echo '<div id="backgroundCoverBlur" style=""></div>';
+		}
+		?>
+		<div id="playerBlock" style="z-index: 99;<?php echo $stylePlayer?>">
 			<div id="informationCoverSongDIV">
 				<div style="float: left;">
 					<img id="coverSong" src="/img/modules/yamusic.png" style="width: 50px;border: 1px solid white;">

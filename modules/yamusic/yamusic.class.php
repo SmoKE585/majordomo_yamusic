@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.3 Beta';
+		$this->version = '3.4 Beta';
 		$this->checkInstalled();
 	}
 
@@ -34,6 +34,31 @@ class yamusic extends module {
 		global $playlistID;
 		global $md;
 		global $tab;
+		
+		//Для плеера на сценах
+		global $blur;
+		global $width;
+		global $height;
+		global $styleplayer;
+		global $shaffle;
+		
+		if (isset($blur)) {
+			$this->blur=$blur;
+		}
+		if (isset($width)) {
+			$this->width=$width;
+		}
+		if (isset($height)) {
+			$this->height=$height;
+		}
+		if (isset($styleplayer)) {
+			$this->styleplayer=$styleplayer;
+		}
+		if (isset($shaffle)) {
+			$this->shaffle=$shaffle;
+		}
+		//--------------------------------------
+		
 		if (isset($id)) {
 			$this->id=$id;
 		}
@@ -586,6 +611,12 @@ class yamusic extends module {
 				break;
 			}
 		}
+		
+		($this->blur == 1) ? $out['SCENE_PLAYER_BLUR'] = 1 : $out['SCENE_PLAYER_BLUR'] = 0;
+		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 0;
+		($this->height) ? $out['SCENE_PLAYER_HEIGHT'] = $this->height : $out['SCENE_PLAYER_HEIGHT'] = 0;
+		($this->shaffle) ? $out['SCENE_PLAYER_SHAFFLE'] = $this->shaffle : $out['SCENE_PLAYER_SHAFFLE'] = 0;
+		if($this->styleplayer) $out['SCENE_PLAYER_STYLEPLAYER'] = $this->styleplayer;
 		
 		$out['SCENE_PLAYER_UID'] = $mainUser;
 		$out['SCENE_PLAYER_PLAYLIST'] = '-1'.$mainUser;

@@ -1,1 +1,9 @@
-<iframe style="background-color: transparent;border: none;border-radius: 10px;[#if SCENE_PLAYER_WIDTH != 0#]width: [#SCENE_PLAYER_WIDTH#];[#endif#][#if SCENE_PLAYER_HEIGHT != 0#]height: [#SCENE_PLAYER_HEIGHT#];[#endif#]" src="/modules/yamusic/frame_player.php?setVolue=[#FRAME_USUAL_SETVOLUME#]&playlist=[#SCENE_PLAYER_PLAYLIST#]&owner=[#SCENE_PLAYER_UID#]&shaffle=[#SCENE_PLAYER_SHAFFLE#]&autoplay=0&version=[#VERSION#]&blur=[#SCENE_PLAYER_BLUR#][#if SCENE_PLAYER_WIDTH != 0#]&width=[#SCENE_PLAYER_WIDTH#][#endif#][#if SCENE_PLAYER_HEIGHT != 0#]&height=[#SCENE_PLAYER_HEIGHT#][#endif#][#if SCENE_PLAYER_STYLEPLAYER != ''#]&styleplayer=[#SCENE_PLAYER_STYLEPLAYER#][#endif#]" frameborder="0" scrolling="no" seamless></iframe>
+<script type="text/javascript">
+$(function() {
+    var iframe = $('#ourframe', parent.document.body);
+    iframe.height($(document.body).height());
+    iframe.width($(document.body).width());
+});
+</script>
+
+<iframe id="ourframe" style="background-color: transparent;border: none;border-radius: 10px;[#if SCENE_PLAYER_WIDTH != 0#]width: [#SCENE_PLAYER_WIDTH#];[#endif#][#if SCENE_PLAYER_HEIGHT != 0#]height: [#SCENE_PLAYER_HEIGHT#];[#endif#]" src="/modules/yamusic/frame_player.php?setVolue=[#FRAME_USUAL_SETVOLUME#]&playlist=[#SCENE_PLAYER_PLAYLIST#]&owner=[#SCENE_PLAYER_UID#]&shaffle=[#SCENE_PLAYER_SHAFFLE#]&onlycontrol=[#SCENE_PLAYER_ONLYCONTROL#]&autoplay=0&version=[#VERSION#]&blur=[#SCENE_PLAYER_BLUR#][#if SCENE_PLAYER_WIDTH != 0#]&width=[#SCENE_PLAYER_WIDTH#][#endif#][#if SCENE_PLAYER_HEIGHT != 0#]&height=[#SCENE_PLAYER_HEIGHT#][#endif#][#if SCENE_PLAYER_STYLEPLAYER != ''#]&styleplayer=[#SCENE_PLAYER_STYLEPLAYER#][#endif#]" frameborder="0" scrolling="no" seamless></iframe>

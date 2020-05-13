@@ -9,16 +9,36 @@ include_once ('./lib/loader.php');
 $volume = $_GET['setVolue'];
 $playlist = $_GET['playlist'];
 $owner = $_GET['owner'];
-$autoplay = $_GET['autoplay'];
-$shaffle = $_GET['shaffle'];
+$autoplay = (int) $_GET['autoplay'];
+$shaffle = (int) $_GET['shaffle'];
 $version = $_GET['version'];
-$blur = $_GET['blur'];
-$width = $_GET['width'];
-$height = $_GET['height'];
+$blur = (int) $_GET['blur'];
+$width = (int) $_GET['width'];
+$height = (int) $_GET['height'];
 $stylePlayer = $_GET['styleplayer'];
+$onlycontrol = (int) $_GET['onlycontrol'];
 
-if(empty($stylePlayer)) $stylePlayer = 'height: 150px; width: 300px; padding: 15px; border-radius: 20px; bottom: 0px; right: 0px; margin-right: 10px;';
-if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
+//Если только кнопки, все остально выкидываем
+if($onlycontrol == 1) {
+	unset($stylePlayer);
+	unset($blur);
+}
+
+if(empty($width)) $width = '300';
+if(!empty($height) && $height >= 180) {
+	//Костыль чтобы размер смещения считать
+	if($height >= 200 && $onlycontrol != 1) {
+		$heightMarginTop = 'margin-top: '.($height-170).'px;';
+	} else {
+		$heightMarginTop = 'margin-top: 20px;';
+	}
+} else {
+	$height = 180;
+	$heightMarginTop = 'margin-top: 20px;';
+}
+if(empty($stylePlayer) && $onlycontrol != 1) $stylePlayer = 'height: '.$height.'px;width: '.$width.'px; padding: 15px; border-radius: 20px;';
+if(empty($stylePlayer) && $onlycontrol == 1) $stylePlayer = 'width: '.$width.'px;';
+if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 
 ?>
 <html>
@@ -75,7 +95,7 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 					//Вставляем ссылку
 					$('#musicPlayer').attr('src', responce[0].LINK);
 					
-					$('#informationCoverSongDIV').show();
+					<?php if($onlycontrol != 1) echo "$('#informationCoverSongDIV').show();";?>
 					$('#volumeControlDIV').hide();
 					
 					var audio = document.getElementById("musicPlayer");
@@ -103,7 +123,7 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 						$('#volumeBotton').show();
 						<?php 
 						if($blur == 1) {
-							echo "$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER+');filter: blur(15px);background-size: cover;background-position: center center;z-index: 9;background-repeat: no-repeat;height: 180px;width: 300px;padding: 15px;border-radius: 20px;');";
+							echo "$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER+');filter: blur(15px);background-size: cover;background-position: center center;z-index: 9;background-repeat: no-repeat;height: ".$height."px;width: ".$width."px;padding: 15px;border-radius: 20px;');";
 							echo "$('#playerBlock').attr('style', 'position: absolute;z-index: 99; ".$stylePlayer."');";
 							echo "$('#backgroundCoverBlur').show();";
 						}
@@ -135,7 +155,7 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 			var audio = document.getElementById("musicPlayer");
 			audio.removeEventListener('ended', nextPlayMusic);
 			
-			$('#informationCoverSongDIV').show();
+			<?php if($onlycontrol != 1) echo "$('#informationCoverSongDIV').show();";?>
 			$('#volumeControlDIV').hide();
 			
 			$('#pausePlayMusic').hide();
@@ -155,7 +175,7 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 			$('#musicPlayer').get(0).pause();
 			$('#musicPlayer').removeAttr('src');
 			<?php if($blur == 1) echo "$('#backgroundCoverBlur').hide();";?>
-			$('#informationCoverSongDIV').show();
+			<?php if($onlycontrol != 1) echo "$('#informationCoverSongDIV').show();";?>
 			$('#volumeControlDIV').hide();
 			
 			//Инфо о треке
@@ -167,7 +187,7 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 		function shaffleMusicTrack() {
 			shaffleStatus = $('#shaffleMusic').text();
 			
-			$('#informationCoverSongDIV').show();
+			<?php if($onlycontrol != 1) echo "$('#informationCoverSongDIV').show();";?>
 			$('#volumeControlDIV').hide();
 			
 			if(shaffleStatus == 1) {
@@ -223,7 +243,7 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 		}
 		?>
 		<div id="playerBlock" style="z-index: 99;<?php echo $stylePlayer?>">
-			<div id="informationCoverSongDIV">
+			<div id="informationCoverSongDIV" style="<?php if($onlycontrol == 1) echo 'display:none;';?>">
 				<div style="float: left;">
 					<img id="coverSong" src="/img/modules/yamusic.png" style="width: 50px;border: 1px solid white;">
 				</div>
@@ -233,14 +253,15 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 				</div>
 			</div>
 			<div id="volumeControlDIV" style="display:none;">
-				<div class="text-center" style="font-size: 1.9rem;margin-bottom: 5px;">
+				<div class="text-center" style="font-size: 1.9rem;margin-bottom: 15px;font-weight: bold;background: white;border-radius: 5px;padding: 5px;">
 					<i class="las la-volume-up"></i> Громкость <span id="setShowVolume"></span>%
 				</div>
 				<input type="range" id="volumeSetControl" onChange="rangeVolumeSet('PUANDSCENE')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
 			</div>
 			
-			<div id="buttonControl" class="text-center" style="background: white;border-radius: 50px;padding: 10px;margin-top: 20px;">
-				<i class="las la-volume-up" onclick="$('#informationCoverSongDIV').toggle();$('#volumeControlDIV').toggle();" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>
+			<div id="buttonControl" class="text-center" style="background: white;border-radius: 50px;padding: 10px;<?php echo $heightMarginTop; ?>">
+				
+				<?php if($onlycontrol != 1) echo '<i class="las la-volume-up" onclick="$(\'#informationCoverSongDIV\').toggle();$(\'#volumeControlDIV\').toggle();" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>';?>
 				
 				<i class="las la-backward" style="display:none;font-size: 4rem; color: rgb(93, 83, 134); margin-right: 15px;" id="prevTrack" onclick="prevPlayMusic();"></i>
 				
@@ -260,6 +281,11 @@ if($blur != 1) $stylePlayer .= 'background: #ffd18e;';
 				<div id="ownerMusic" style="display: none;"><?php echo $owner;?></div>
 				<div id="playlistMusic" style="display: none;"><?php echo $playlist;?></div>
 			</div>
+			<!---
+			<select style="width: 100%;padding: 5px;border: 1px solid #d6d6d6;background: #f9f9f9;font-size: 1.2rem;outline: none;border-radius: 5px;">
+				<option>Плейлист</option>
+			</select>
+			--->
 		</div>
 	</body>
 </html>

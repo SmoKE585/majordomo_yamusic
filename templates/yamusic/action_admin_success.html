@@ -66,21 +66,23 @@
 			</div>
 		[#endif#]
 		<div class="text-center"><a href="#" style="text-decoration: none;color: #333333;border: 1px solid #cccccc;padding: 10px;border-radius: 5px;" onclick="$(this).hide();$('#addNewUSer').show();$('#hintWrongPass').hide();">Добавить нового пользователя</a></div>
-		<hr>
-		<div class="row text-center">
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
-			<a href="?mode=playlistOnDay"><img src="/templates/yamusic/img/playlist_icon/onday.png" style="width: 95%;"></a>
-		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
-			<a href="?mode=playlistNewTracks"><img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;"></a>
-		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
-			<a href="?mode=playlistDejavu"><img src="/templates/yamusic/img/playlist_icon/dejavu.gif" style="width: 95%;"></a>
-		</div>
-		<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
-			<a href="?mode=playlistTainik"><img src="/templates/yamusic/img/playlist_icon/tainik.gif" style="width: 95%;"></a>
-		</div>
-		</div>
+		[#if PLAYLIST_MUSICLIST != ''#]
+			<hr>
+			<div class="row text-center">
+				<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
+					<a href="?mode=playlistOnDay"><img src="/templates/yamusic/img/playlist_icon/onday.png" style="width: 95%;"></a>
+				</div>
+				<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
+					<a href="?mode=playlistNewTracks"><img src="/templates/yamusic/img/playlist_icon/newtracks.gif" style="width: 95%;"></a>
+				</div>
+				<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
+					<a href="?mode=playlistDejavu"><img src="/templates/yamusic/img/playlist_icon/dejavu.gif" style="width: 95%;"></a>
+				</div>
+				<div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12" style="padding: 0px;">
+					<a href="?mode=playlistTainik"><img src="/templates/yamusic/img/playlist_icon/tainik.gif" style="width: 95%;"></a>
+				</div>
+			</div>
+		[#endif#]
 		<hr>
 		<h4>Мои плейлисты ([#TOTAL_PLAYLIST#] шт.)</h4>
 		<!---
@@ -342,6 +344,13 @@
 					В дальнейшем открытие скаченного плейлиста будет происходить быстро, т.к. все данные будут в вашей БД.
 					<br><br>
 					Загружайте плейлисты и погнали! =)
+					<br><br>
+					<div class="text-center">
+						<form action="?" method="post" enctype="multipart/form-data">
+							<input type="hidden" name="mode" value="reloadplaylist">
+							<button type="submit" class="btn btn-success">Обновить список плейлистов</button>
+						</form>
+					</div>
 				</div>
 			</div>
 		[#else#]

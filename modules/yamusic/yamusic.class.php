@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.4 Beta';
+		$this->version = '3.5 Beta';
 		$this->checkInstalled();
 	}
 
@@ -41,6 +41,7 @@ class yamusic extends module {
 		global $height;
 		global $styleplayer;
 		global $shaffle;
+		global $onlycontrol;
 		
 		if (isset($blur)) {
 			$this->blur=$blur;
@@ -56,6 +57,9 @@ class yamusic extends module {
 		}
 		if (isset($shaffle)) {
 			$this->shaffle=$shaffle;
+		}
+		if (isset($onlycontrol)) {
+			$this->onlycontrol=$onlycontrol;
 		}
 		//--------------------------------------
 		
@@ -194,7 +198,7 @@ class yamusic extends module {
 
 		}
 
-		//Создадим плейлист МНЕ НРАВИТСЯ
+		//Создадим плейлист МНЕ НРАВИТСЯ и специальные плейлисты и закостылим их ибо нельзя уже переделывать БД, забыл 1 колонку добавить =( Плак =(
 		$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_playlist` WHERE `PLAYLISTID` = '-1".$userUID."' ORDER BY `ID` DESC LIMIT 1");
 		if($selectIfDouble['PLAYLISTID'] != '-1'.$userUID) {
 			SQLExec("INSERT INTO `yamusic_playlist` (`OWNER`,`PLAYLISTID`,`TITLE`,`VISIBILITY`,`CREATED`,`DURATION`,`COVER`) VALUES ('".dbSafe($userUID)."','-1".$userUID."','Мне нравится','private','".dbSafe(date('d.m.Y H:i:s', time()))."','','https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png');");
@@ -445,7 +449,7 @@ class yamusic extends module {
 			
 			
 			$out['ACCOUNT_PLUS_AVAIL'] = $loadUserInfoSub->plus->hasPlus;
-			$out['ACCOUNT_SUB_END_DATE'] = date('m.d.Y H:i:s', strtotime($loadUserInfoSub->subscription->autoRenewable[0]->expires));
+			$out['ACCOUNT_SUB_END_DATE'] = date('d.m.Y H:i:s', strtotime($loadUserInfoSub->subscription->autoRenewable[0]->expires));
 			$out['ACCOUNT_SUB_HOWDATE_PAY'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->duration;
 			$out['ACCOUNT_SUB_HOWPAY'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->price->amount;
 			$out['ACCOUNT_SUB_HOWPAY_CURR'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->price->currency;
@@ -616,6 +620,7 @@ class yamusic extends module {
 		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 0;
 		($this->height) ? $out['SCENE_PLAYER_HEIGHT'] = $this->height : $out['SCENE_PLAYER_HEIGHT'] = 0;
 		($this->shaffle) ? $out['SCENE_PLAYER_SHAFFLE'] = $this->shaffle : $out['SCENE_PLAYER_SHAFFLE'] = 0;
+		($this->onlycontrol) ? $out['SCENE_PLAYER_ONLYCONTROL'] = $this->onlycontrol : $out['SCENE_PLAYER_ONLYCONTROL'] = 0;
 		if($this->styleplayer) $out['SCENE_PLAYER_STYLEPLAYER'] = $this->styleplayer;
 		
 		$out['SCENE_PLAYER_UID'] = $mainUser;

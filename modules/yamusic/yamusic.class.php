@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.5 Beta';
+		$this->version = '3.6 Beta';
 		$this->checkInstalled();
 	}
 
@@ -42,6 +42,8 @@ class yamusic extends module {
 		global $styleplayer;
 		global $shaffle;
 		global $onlycontrol;
+		global $autoplay;
+		global $showplaylist;
 		
 		if (isset($blur)) {
 			$this->blur=$blur;
@@ -60,6 +62,12 @@ class yamusic extends module {
 		}
 		if (isset($onlycontrol)) {
 			$this->onlycontrol=$onlycontrol;
+		}
+		if (isset($autoplay)) {
+			$this->autoplay=$autoplay;
+		}
+		if (isset($showplaylist)) {
+			$this->showplaylist=$showplaylist;
 		}
 		//--------------------------------------
 		
@@ -112,11 +120,28 @@ class yamusic extends module {
 		$this->result=$p->result;
 	}
 	
-	function loadUserInfo($id) {
+	function loadUserInfo($id, $typeSearch = 0) {
 		//Выгрузим из БД нужного юзера
-		$selectUser = SQLSelectOne("SELECT * FROM `yamusic_users` WHERE `SELECTED` = 1 AND `ID` = '".$id."' ORDER BY `ID` DESC LIMIT 1");
+		if($typeSearch == 1) {
+			$selectUser = SQLSelectOne("SELECT * FROM `yamusic_users` WHERE `UID` = '".$id."' ORDER BY `ID` DESC LIMIT 1");
+		} else {
+			$selectUser = SQLSelectOne("SELECT * FROM `yamusic_users` WHERE `ID` = '".$id."' ORDER BY `ID` DESC LIMIT 1");
+		}
 		
 		return $selectUser;
+	}
+	
+	function loadPlaylistOnScene() {
+		$select = SQLSelect("SELECT * FROM `yamusic_playlist` ORDER BY `ID` DESC");
+		
+		foreach($select as $key => $value) {
+			//Проверим есть ли закаченые треки
+			$selectSum = SQLSelectOne("SELECT COUNT(*) FROM `yamusic_music` WHERE `PLAYLISTID` = '".$value['PLAYLISTID']."'");
+			$select[$key]['USERNAME'] = $this->loadUserInfo($value['OWNER'], 1)['FULLNAME'];
+			($selectSum['COUNT(*)'] != 0) ? $select[$key]['ISAVAIL'] = 1 : $select[$key]['ISAVAIL'] = 0;
+		}
+		
+		return $select;
 	}
 	
 	function loadAllUser() {
@@ -620,6 +645,8 @@ class yamusic extends module {
 		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 0;
 		($this->height) ? $out['SCENE_PLAYER_HEIGHT'] = $this->height : $out['SCENE_PLAYER_HEIGHT'] = 0;
 		($this->shaffle) ? $out['SCENE_PLAYER_SHAFFLE'] = $this->shaffle : $out['SCENE_PLAYER_SHAFFLE'] = 0;
+		($this->autoplay) ? $out['SCENE_PLAYER_AUTOPLAY'] = $this->autoplay : $out['SCENE_PLAYER_AUTOPLAY'] = 0;
+		($this->showplaylist) ? $out['SCENE_PLAYER_SHOWPLAYLIST'] = $this->showplaylist : $out['SCENE_PLAYER_SHOWPLAYLIST'] = 0;
 		($this->onlycontrol) ? $out['SCENE_PLAYER_ONLYCONTROL'] = $this->onlycontrol : $out['SCENE_PLAYER_ONLYCONTROL'] = 0;
 		if($this->styleplayer) $out['SCENE_PLAYER_STYLEPLAYER'] = $this->styleplayer;
 		

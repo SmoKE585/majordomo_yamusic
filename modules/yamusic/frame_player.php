@@ -17,6 +17,14 @@ $width = (int) $_GET['width'];
 $height = (int) $_GET['height'];
 $stylePlayer = $_GET['styleplayer'];
 $onlycontrol = (int) $_GET['onlycontrol'];
+$showplaylist = (int) $_GET['showplaylist'];
+
+if($showplaylist == 1) {
+	require('yamusic.class.php');
+
+	$class = new yamusic();
+	$allPlaylistLoad = $class->loadPlaylistOnScene();
+}
 
 //Если только кнопки, все остально выкидываем
 if($onlycontrol == 1) {
@@ -25,15 +33,17 @@ if($onlycontrol == 1) {
 }
 
 if(empty($width)) $width = '300';
-if(!empty($height) && $height >= 180) {
+if(!empty($height) && $height > 160) {
 	//Костыль чтобы размер смещения считать
 	if($height >= 200 && $onlycontrol != 1) {
+		if($showplaylist == 1) $height = $height+40;
 		$heightMarginTop = 'margin-top: '.($height-170).'px;';
 	} else {
 		$heightMarginTop = 'margin-top: 20px;';
 	}
 } else {
-	$height = 180;
+	$height = 150;
+	if($showplaylist == 1) $height = $height+40;
 	$heightMarginTop = 'margin-top: 20px;';
 }
 if(empty($stylePlayer) && $onlycontrol != 1) $stylePlayer = 'height: '.$height.'px;width: '.$width.'px; padding: 15px; border-radius: 20px;';
@@ -224,6 +234,16 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 			});			
 		}
 		
+		function changePlaylist(newPlaylist) {
+			pausePlayMusic();
+			newPlaylist = newPlaylist.split('_');
+			playlistID = newPlaylist[0];
+			owner = newPlaylist[1];
+			$('#playlistMusic').text(playlistID);
+			$('#ownerMusic').text(owner);
+			startPlayMusic();
+		}
+		
 		$(function() {
 			audio = document.querySelector('audio');
 			audio.volume = <?php echo $volume;?>;
@@ -281,11 +301,24 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 				<div id="ownerMusic" style="display: none;"><?php echo $owner;?></div>
 				<div id="playlistMusic" style="display: none;"><?php echo $playlist;?></div>
 			</div>
-			<!---
-			<select style="width: 100%;padding: 5px;border: 1px solid #d6d6d6;background: #f9f9f9;font-size: 1.2rem;outline: none;border-radius: 5px;">
-				<option>Плейлист</option>
+			<?php if($showplaylist == 1): ?>
+			<select onChange="changePlaylist($(this).val());" style="width: 100%;padding: 5px;border: 1px solid #d6d6d6;background: #f9f9f9;font-size: 1.2rem;outline: none;border-radius: 5px;margin-top: 10px;">
+				<?php
+				foreach($allPlaylistLoad as $value) {
+					if($value['ISAVAIL'] == 1) {
+						if($playlist == $value['PLAYLISTID']) {
+							$currentPlaylist = 'selected';
+						} else {
+							$currentPlaylist = '';
+						}
+						echo '<option value="'.$value['PLAYLISTID'].'_'.$value['OWNER'].'" '.$currentPlaylist.'>'.$value['USERNAME'].' - '.$value['TITLE'].'</option>';
+					} else {
+						echo '<option value="" disabled>[!]'.$value['USERNAME'].' - '.$value['TITLE'].'</option>';
+					}
+				}
+				?>
 			</select>
-			--->
+			<? endif; ?>
 		</div>
 	</body>
 </html>

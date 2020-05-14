@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.6 Beta';
+		$this->version = '3.7 Beta';
 		$this->checkInstalled();
 	}
 
@@ -247,6 +247,8 @@ class yamusic extends module {
 		
 		//Загрузка треков для плейлиста МНЕ НРАВИТСЯ
 		if($playlistID == '-1'.$userUID) {
+			SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '-1".$userUID."'");
+			
 			$likesTrack = $newDOM->getLikesTracks();
 			
 			foreach($likesTrack->tracks as $key => $value) {
@@ -263,13 +265,11 @@ class yamusic extends module {
 				$cover = mb_strlen($getCover[0]->coverUri)-2;
 				$cover = substr($getCover[0]->coverUri, 0, $cover);
 				
-				$selectIfDouble = SQLSelectOne("SELECT * FROM `yamusic_music` WHERE `SONGID` = '".dbSafe($idTrack)."' AND `OWNER` = '".dbSafe($userUID)."' ORDER BY `ID` DESC LIMIT 1");
-				
-				if($selectIfDouble['SONGID'] != $idTrack) {
-					SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
-				}
+				SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
 			}
 		} else {
+			SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+			
 			$loadUserMusic = $newDOM->usersPlaylists($playlistID, $userUID);
 			$loadUserMusic = $loadUserMusic->result[0]->tracks;
 			
@@ -292,6 +292,7 @@ class yamusic extends module {
 			}
 		}
 		
+		return ;
 		//$this->redirect("?mode=loadPlayList&playlistID=".$playlistID);
 	}
 	
@@ -569,7 +570,7 @@ class yamusic extends module {
 				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
 				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
 			} else {
-				$selectMusic = SQLSelectOne("SELECT `SONGID` FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
+				$selectMusic = SQLSelectOne("SELECT `SONGID` FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."' ORDER BY `ID` DESC");
 				$selectPlaylist = SQLSelectOne("SELECT `TITLE` FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");
 				
 				if($selectMusic['SONGID']) {

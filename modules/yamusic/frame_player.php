@@ -301,7 +301,7 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 				<div id="ownerMusic" style="display: none;"><?php echo $owner;?></div>
 				<div id="playlistMusic" style="display: none;"><?php echo $playlist;?></div>
 			</div>
-			<?php if($showplaylist == 1): ?>
+			<?php if($showplaylist == 1) { ?>
 			<select onChange="changePlaylist($(this).val());" style="width: 100%;padding: 5px;border: 1px solid #d6d6d6;background: #f9f9f9;font-size: 1.2rem;outline: none;border-radius: 5px;margin-top: 10px;">
 				<?php
 				foreach($allPlaylistLoad as $value) {
@@ -318,7 +318,7 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 				}
 				?>
 			</select>
-			<? endif; ?>
+			<?php } ?>
 		</div>
 	</body>
 </html>

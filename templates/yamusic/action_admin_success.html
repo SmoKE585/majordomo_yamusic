@@ -1,3 +1,11 @@
+<style>
+.playerDefaul {
+	background: white;
+	border-radius: 50px;
+	padding: 10px;
+	margin-top: 20px;
+}
+</style>
 <div class="row" style="border: 1px solid #e7e7e7;border-radius: 5px;padding-top: 10px;padding-bottom: 10px;margin-top: 15px;">
 	<div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-12">
 		<h4>Мой аккаунт</h4>
@@ -215,6 +223,9 @@
 						$('.clearBottonPause').hide();
 						$('.clearBottonPlay').show();
 						
+						//Каждую секунду изменяет значение бекгроунд
+						var timerShowTrackTime = setInterval(function() { trackListInfo() }, 1000);
+						
 						$('#startPlayMusic_'+responce[0].SONGID).hide();
 						$('#pausePlayMusic_'+responce[0].SONGID).show();
 						
@@ -267,6 +278,14 @@
 			$('#songName').html('');
 			$('#artistsName').html('');
 			$('#coverSong').attr('src', '/templates/yamusic/img/yamusic_logo_full.png');
+		}
+		
+		function trackListInfo() {
+			allTrackTime = Math.round($('#musicPlayer').get(0).duration);
+			nowTrackTime = Math.round($('#musicPlayer').get(0).currentTime);
+			
+			countNowTime = nowTrackTime/allTrackTime*100;
+			$('#buttonControl').attr('style', 'background: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-color: #ffffff;background-repeat: repeat-y;');
 		}
 		
 		function shaffleMusicTrack() {
@@ -353,7 +372,25 @@
 					</div>
 				</div>
 			</div>
-		[#else#]
+		[#else LOADPLAYLISTDONE#]
+		[#if TOTAL_PLAYLIST_NEEDLOAD == 1#]
+			<div class="text-center" style="margin-top: 20px">
+				<i class="las la-sync" style="font-size: 10rem;color: orange;"></i>
+				<div>
+					Мы не смогли выгрузить ваши треки автоматически. Сделайте это вручную или <a href="https://mjdm.ru/forum/viewtopic.php?f=5&t=7103&p=119546#p119546" target="_blank">делайте это автоматически из скриптов</a>
+					<br>
+					Загружайте треки и погнали! =)
+					<br><br>
+					<div class="text-center">
+						<form action="?" method="GET" enctype="multipart/form-data">
+							<input type="hidden" name="mode" value="[#PLAYLIST_CURRENT_SYSTEMNAME#]">
+							<input type="hidden" name="view_mode" value="reload">
+							<button type="submit" class="btn btn-success">Обновить список треков</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		[#else TOTAL_PLAYLIST_NEEDLOAD#]
 		<h4>Треки из плейлиста <b>[#PLAYLIST_CURRENT_NAME#]</b> (Всего [#TOTAL_PLAYLIST_TRACKS#], показано [#TOTAL_PLAYLIST_SHOWTRACKS#])</h4>
 		<table class="table table-stripped" style="font-size: 1.2rem;">
 			<tbody>
@@ -376,7 +413,8 @@
 				[#end PLAYLIST_MUSICLIST#]
 			</tbody>
 		</table>
-		[#endif#]
+		[#endif TOTAL_PLAYLIST_NEEDLOAD#]
+		[#endif LOADPLAYLISTDONE#]
 	</div>
 	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="">
 		<h4>Настройки и управление</h4>
@@ -400,6 +438,12 @@
 				</span>
 				<i class="las la-volume-up" style="font-size: 2rem;color: black;vertical-align: top;"></i> Громкость
 			</li>
+			<li class="list-group-item">
+				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;" data-toggle="modal" data-target="#volumeControl">
+					<span style="vertical-align: top;">Настроить</span>
+				</span>
+				<i class="las la-volume-up" style="font-size: 2rem;color: black;vertical-align: top;" onclick="trackListInfo();"></i> Тест
+			</li>
 		</ul>
 	</div>
 	
@@ -414,7 +458,7 @@
 			<span id="artistsName" style="background: white;padding: 2px 5px 2px 5px;border-radius: 0px 0px 5px 5px;"></span>
 		</div>
 		
-		<div id="buttonControl" class="text-center" style="background: white;border-radius: 50px;padding: 10px;margin-top: 20px;">
+		<div id="buttonControl" class="text-center playerDefaul" style="">
 			<i class="las la-volume-up" data-toggle="modal" data-target="#volumeControl" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>
 		
 			<i class="las la-backward" style="font-size: 4rem;color: #5d5386;margin-right: 15px;display:none;" id="prevTrack" onClick="prevPlayMusic();"></i>

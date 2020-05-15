@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.7 Beta';
+		$this->version = '3.8 Beta';
 		$this->checkInstalled();
 	}
 
@@ -521,7 +521,7 @@ class yamusic extends module {
 				// die();
 				
 				
-				$test = $accountInfo->accountStatus();
+				$test = $accountInfo->rotorStationGenreFeedbackRadioStarted('tradjazz', $loadUserInfo['UID']);
 				echo '<pre>';
 				var_dump($test);
 				die();
@@ -537,8 +537,10 @@ class yamusic extends module {
 				$out['PLAYLIST_MUSICLIST'] = $loadMusic['PLAYLIST_MUSICLIST'];
 				$out['PLAYLIST_CURRENT'] = $loadMusic['PLAYLIST_CURRENT'];
 				$out['PLAYLIST_CURRENT_NAME'] = $loadMusic['PLAYLIST_CURRENT_NAME'];
+				$out['PLAYLIST_CURRENT_SYSTEMNAME'] = $this->mode;
 				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
-				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];				
+				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
+				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;			
 			} else if($this->mode == 'playlistDejavu') {
 				($this->view_mode == 'reload') ? $needReload = true : $needReload = false;
 				$loadDataInPlaylist = $this->loadUserSpecialPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID'], 'Дежавю', $needReload);
@@ -547,8 +549,10 @@ class yamusic extends module {
 				$out['PLAYLIST_MUSICLIST'] = $loadMusic['PLAYLIST_MUSICLIST'];
 				$out['PLAYLIST_CURRENT'] = $loadMusic['PLAYLIST_CURRENT'];
 				$out['PLAYLIST_CURRENT_NAME'] = $loadMusic['PLAYLIST_CURRENT_NAME'];
+				$out['PLAYLIST_CURRENT_SYSTEMNAME'] = $this->mode;
 				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
 				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
+				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;
 			} else if($this->mode == 'playlistNewTracks') {
 				($this->view_mode == 'reload') ? $needReload = true : $needReload = false;
 				$loadDataInPlaylist = $this->loadUserSpecialPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID'], 'Премьера', $needReload);
@@ -557,8 +561,10 @@ class yamusic extends module {
 				$out['PLAYLIST_MUSICLIST'] = $loadMusic['PLAYLIST_MUSICLIST'];
 				$out['PLAYLIST_CURRENT'] = $loadMusic['PLAYLIST_CURRENT'];
 				$out['PLAYLIST_CURRENT_NAME'] = $loadMusic['PLAYLIST_CURRENT_NAME'];
+				$out['PLAYLIST_CURRENT_SYSTEMNAME'] = $this->mode;
 				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
 				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
+				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;
 			} else if($this->mode == 'playlistTainik') {
 				($this->view_mode == 'reload') ? $needReload = true : $needReload = false;
 				$loadDataInPlaylist = $this->loadUserSpecialPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID'], 'Тайник', $needReload);
@@ -567,8 +573,10 @@ class yamusic extends module {
 				$out['PLAYLIST_MUSICLIST'] = $loadMusic['PLAYLIST_MUSICLIST'];
 				$out['PLAYLIST_CURRENT'] = $loadMusic['PLAYLIST_CURRENT'];
 				$out['PLAYLIST_CURRENT_NAME'] = $loadMusic['PLAYLIST_CURRENT_NAME'];
+				$out['PLAYLIST_CURRENT_SYSTEMNAME'] = $this->mode;
 				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
 				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
+				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;
 			} else {
 				$selectMusic = SQLSelectOne("SELECT `SONGID` FROM `yamusic_music` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."' ORDER BY `ID` DESC");
 				$selectPlaylist = SQLSelectOne("SELECT `TITLE` FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$this->playlistID."' AND `OWNER` = '".$loadUserInfo['UID']."'");

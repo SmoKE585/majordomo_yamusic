@@ -53,6 +53,16 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 ?>
 <html>
 	<head>
+		<style>
+		.playerDefaul {
+			background: white;
+			border-radius: 50px;
+			padding: 10px;
+			margin-top: 20px;
+			<?php echo $heightMarginTop; ?>
+		}
+		</style>
+	
 		<script type="text/javascript"  src="/3rdparty/jquery/jquery-3.3.1.min.js"></script>
 		<link rel="stylesheet" href="/3rdparty/bootstrap/css/bootstrap.min.css" type="text/css">
 		<script type="text/javascript" src="/3rdparty/bootstrap/js/bootstrap.min.js"></script>
@@ -138,6 +148,9 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 							echo "$('#backgroundCoverBlur').show();";
 						}
 						?>
+						//Каждую секунду изменяет значение бекгроунд
+						var timerShowTrackTime = setInterval(function() { trackListInfo() }, 1000);
+						
 						//Воспроизводим после того как метаданные загрузятся
 						$('#musicPlayer').get(0).play();
 						$('#pausePlayMusic').show();
@@ -159,6 +172,14 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 			
 			$('#pausePlayMusic').hide();
 			startPlayMusic('next');
+		}
+		
+		function trackListInfo() {
+			allTrackTime = Math.round($('#musicPlayer').get(0).duration);
+			nowTrackTime = Math.round($('#musicPlayer').get(0).currentTime);
+			
+			countNowTime = nowTrackTime/allTrackTime*100;
+			$('#buttonControl').attr('style', 'background: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-color: #ffffff;background-repeat: repeat-y;<?php echo $heightMarginTop; ?>');
 		}
 		
 		function prevPlayMusic() {
@@ -279,7 +300,7 @@ if($blur != 1 && $onlycontrol != 1) $stylePlayer .= 'background: #ffd18e;';
 				<input type="range" id="volumeSetControl" onChange="rangeVolumeSet('PUANDSCENE')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
 			</div>
 			
-			<div id="buttonControl" class="text-center" style="background: white;border-radius: 50px;padding: 10px;<?php echo $heightMarginTop; ?>">
+			<div id="buttonControl" class="text-center playerDefaul" style="">
 				
 				<?php if($onlycontrol != 1) echo '<i class="las la-volume-up" onclick="$(\'#informationCoverSongDIV\').toggle();$(\'#volumeControlDIV\').toggle();" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>';?>
 				

@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '3.8 Beta';
+		$this->version = '3.9 Beta';
 		$this->checkInstalled();
 	}
 
@@ -44,6 +44,7 @@ class yamusic extends module {
 		global $onlycontrol;
 		global $autoplay;
 		global $showplaylist;
+		global $btncolor;
 		
 		if (isset($blur)) {
 			$this->blur=$blur;
@@ -68,6 +69,9 @@ class yamusic extends module {
 		}
 		if (isset($showplaylist)) {
 			$this->showplaylist=$showplaylist;
+		}
+		if (isset($btncolor)) {
+			$this->btncolor=$btncolor;
 		}
 		//--------------------------------------
 		
@@ -651,13 +655,14 @@ class yamusic extends module {
 		}
 		
 		($this->blur == 1) ? $out['SCENE_PLAYER_BLUR'] = 1 : $out['SCENE_PLAYER_BLUR'] = 0;
-		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 0;
+		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 300;
 		($this->height) ? $out['SCENE_PLAYER_HEIGHT'] = $this->height : $out['SCENE_PLAYER_HEIGHT'] = 0;
 		($this->shaffle) ? $out['SCENE_PLAYER_SHAFFLE'] = $this->shaffle : $out['SCENE_PLAYER_SHAFFLE'] = 0;
 		($this->autoplay) ? $out['SCENE_PLAYER_AUTOPLAY'] = $this->autoplay : $out['SCENE_PLAYER_AUTOPLAY'] = 0;
+		($this->btncolor) ? $out['SCENE_PLAYER_BTNCOLOR'] = str_replace("#", "_COL_", $this->btncolor) : $out['SCENE_PLAYER_BTNCOLOR'] = 0;
 		($this->showplaylist) ? $out['SCENE_PLAYER_SHOWPLAYLIST'] = $this->showplaylist : $out['SCENE_PLAYER_SHOWPLAYLIST'] = 0;
 		($this->onlycontrol) ? $out['SCENE_PLAYER_ONLYCONTROL'] = $this->onlycontrol : $out['SCENE_PLAYER_ONLYCONTROL'] = 0;
-		if($this->styleplayer) $out['SCENE_PLAYER_STYLEPLAYER'] = $this->styleplayer;
+		if($this->styleplayer) $out['SCENE_PLAYER_STYLEPLAYER'] = str_replace("#", "_COL_", $this->styleplayer);
 		
 		$out['SCENE_PLAYER_UID'] = $mainUser;
 		$out['SCENE_PLAYER_PLAYLIST'] = '-1'.$mainUser;

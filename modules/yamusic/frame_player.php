@@ -14,16 +14,13 @@ $shaffle = (int) $_GET['shaffle'];
 $version = $_GET['version'];
 $blur = (int) $_GET['blur'];
 $stylePlayer = str_replace("_COL_", "#", $_GET['styleplayer']);
-$btncolor = str_replace("_COL_", "#", $_GET['btncolor']);
+$stylebtn = str_replace("_COL_", "#", $_GET['stylebtn']);
 $onlycontrol = (int) $_GET['onlycontrol'];
 $showplaylist = (int) $_GET['showplaylist'];
 
 if(!$stylePlayer && $blur == 0) $stylePlayer = 'padding: 15px;background: #9E9E9E;';	
-if(!$btncolor) {
-	$btncolor = 'white';
-} else {
-	//Выделим кнопки белым
-	$btncolor_noneDef = 'border: 1px solid white;background: white;border-radius: 10px;';
+if(!$stylebtn) {
+	$stylebtn = 'border: 1px solid white;border-radius: 50px;background: white;padding: 10px;';
 }
 
 if($showplaylist == 1) {
@@ -37,19 +34,13 @@ if($showplaylist == 1) {
 if($onlycontrol == 1) {
 	unset($stylePlayer);
 	unset($blur);
+	$btncolorPadd = 'margin-top: 0px;';
+} else {
+	$btncolorPadd = 'margin-top: 20px;';
 }
 ?>
 <html>
 	<head>
-		<style>
-		.playerDefaul {
-			background: white;
-			border-radius: 50px;
-			padding: 10px;
-			margin-top: 20px;
-		}
-		</style>
-	
 		<script type="text/javascript"  src="/3rdparty/jquery/jquery-3.3.1.min.js"></script>
 		<link rel="stylesheet" href="/3rdparty/bootstrap/css/bootstrap.min.css" type="text/css">
 		<script type="text/javascript" src="/3rdparty/bootstrap/js/bootstrap.min.js"></script>
@@ -166,7 +157,7 @@ if($onlycontrol == 1) {
 			nowTrackTime = Math.round($('#musicPlayer').get(0).currentTime);
 			
 			countNowTime = nowTrackTime/allTrackTime*100;
-			$('#buttonControl').attr('style', 'background: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-color: <?php echo $btncolor;?>;background-repeat: repeat-y;margin-top: 20px;');
+			$('#buttonControl').attr('style', 'background: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-repeat: repeat-y;<?php echo $stylebtn;?>');
 		}
 		
 		function prevPlayMusic() {
@@ -210,11 +201,11 @@ if($onlycontrol == 1) {
 			
 			if(shaffleStatus == 1) {
 				$('#shaffleMusic').text('0');
-				$('#shaffleBotton').attr('style', 'font-size: 2.3rem;margin-left: 15px;vertical-align: super;<?php echo $btncolor_noneDef; ?>');
+				$('#shaffleBotton').attr('style', 'font-size: 2.3rem;margin-left: 15px;vertical-align: super;');
 				$('#prevTrack').show();
 			} else {
 				$('#shaffleMusic').text('1');
-				$('#shaffleBotton').attr('style', 'color: orange;font-size: 2.3rem;margin-left: 15px;vertical-align: super;<?php echo $btncolor_noneDef; ?>');
+				$('#shaffleBotton').attr('style', 'color: orange;font-size: 2.3rem;margin-left: 15px;vertical-align: super;');
 				$('#prevTrack').hide();
 			}
 		}
@@ -288,18 +279,18 @@ if($onlycontrol == 1) {
 				<input type="range" id="volumeSetControl" onChange="rangeVolumeSet('PUANDSCENE')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
 			</div>
 			
-			<div id="buttonControl" class="text-center playerDefaul" style="margin-top: 20px;background-color: <?php echo $btncolor;?>;">
-				<?php if($onlycontrol != 1) echo '<i class="las la-volume-up" onclick="$(\'#informationCoverSongDIV\').toggle();$(\'#volumeControlDIV\').toggle();" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;'.$btncolor_noneDef.'"></i>';?>
+			<div id="buttonControl" class="text-center playerDefaul" style="<?php echo $stylebtn;?>">
+				<?php if($onlycontrol != 1) echo '<i class="las la-volume-up" onclick="$(\'#informationCoverSongDIV\').toggle();$(\'#volumeControlDIV\').toggle();" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>';?>
 				
-				<i class="las la-backward" style="display:none;font-size: 4rem; color: rgb(93, 83, 134); margin-right: 15px;<?php echo $btncolor_noneDef; ?>" id="prevTrack" onclick="prevPlayMusic();"></i>
+				<i class="las la-backward" style="display:none;font-size: 4rem; color: rgb(93, 83, 134); margin-right: 15px;" id="prevTrack" onclick="prevPlayMusic();"></i>
 				
-				<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad" style="width: 40px; vertical-align: top; display: none;<?php echo $btncolor_noneDef; ?>">
+				<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad" style="width: 40px; vertical-align: top; display: none;">
 				
-				<i class="las la-play" style="font-size: 4rem; color: rgb(92, 184, 92);<?php echo $btncolor_noneDef; ?>" id="startPlayMusic" onclick="startPlayMusic();"></i>
-				<i class="las la-pause-circle" style="display:none;font-size: 4rem; color: rgb(179, 91, 129);<?php echo $btncolor_noneDef; ?>" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
-				<i class="las la-forward" style="display:none;font-size: 4rem; color: rgb(93, 83, 134); margin-left: 15px;<?php echo $btncolor_noneDef; ?>" id="nextTrack" onclick="nextPlayMusic();"></i>
+				<i class="las la-play" style="font-size: 4rem; color: rgb(92, 184, 92);" id="startPlayMusic" onclick="startPlayMusic();"></i>
+				<i class="las la-pause-circle" style="display:none;font-size: 4rem; color: rgb(179, 91, 129);" id="pausePlayMusic" onclick="pausePlayMusic();"></i>
+				<i class="las la-forward" style="display:none;font-size: 4rem; color: rgb(93, 83, 134); margin-left: 15px;" id="nextTrack" onclick="nextPlayMusic();"></i>
 				
-				<i class="las la-random" id="shaffleBotton" onclick="shaffleMusicTrack();" style="<?php if($shaffle == 1) echo 'color: orange;'; ?>font-size: 2.3rem; margin-left: 15px; vertical-align: super;<?php echo $btncolor_noneDef; ?>"></i>
+				<i class="las la-random" id="shaffleBotton" onclick="shaffleMusicTrack();" style="<?php if($shaffle == 1) echo 'color: orange;'; ?>font-size: 2.3rem; margin-left: 15px; vertical-align: super;"></i>
 				
 				<audio id="musicPlayer" src="" preload="auto" --autoplay-policy=no-user-gesture-required></audio>
 

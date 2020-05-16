@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.1';
+		$this->version = '4.2';
 		$this->checkInstalled();
 	}
 
@@ -46,6 +46,7 @@ class yamusic extends module {
 		global $showplaylist;
 		global $stylebtn;
 		global $playlist;
+		global $fixed;
 		
 		if (isset($blur)) {
 			$this->blur=$blur;
@@ -76,6 +77,12 @@ class yamusic extends module {
 		}
 		if (isset($playlist)) {
 			$this->playlist=$playlist;
+		}
+		if (isset($fixed)) {
+			$this->fixed=$fixed;
+		}
+		if (isset($onwindow)) {
+			$this->onwindow=$onwindow;
 		}
 		//--------------------------------------
 		
@@ -654,6 +661,8 @@ class yamusic extends module {
 		$this->admin($out);
 		$this->getConfig();
 		
+		($this->fixed != '') ? $out['SCENE_PLAYER_FIXED'] = 'background-color: transparent;border: none;position: fixed;z-index: 99;border-radius: 20px 20px 0px 0px;bottom: 0;'.$this->fixed.': 0;margin-'.$this->fixed.': 15px;' : $out['SCENE_PLAYER_FIXED'] = 'background-color: transparent;border: none;';
+		($this->onwindow == 1) ? $out['SCENE_PLAYER_ONWINDOW'] = 1 : $out['SCENE_PLAYER_ONWINDOW'] = 0;
 		($this->blur == 1) ? $out['SCENE_PLAYER_BLUR'] = 1 : $out['SCENE_PLAYER_BLUR'] = 0;
 		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 300;
 		($this->height) ? $out['SCENE_PLAYER_HEIGHT'] = $this->height : $out['SCENE_PLAYER_HEIGHT'] = 0;

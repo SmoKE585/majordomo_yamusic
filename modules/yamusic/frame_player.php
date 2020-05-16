@@ -258,7 +258,7 @@ if($onlycontrol == 1) {
 		});
 		</script>
 	</head>
-	<body style="background-color: transparent;border: none;">
+	<body style="background-color: transparent;border: none;overflow: hidden;">
 		<?php
 		if($blur == 1) {
 			echo '<div id="backgroundCoverBlur" style=""></div>';

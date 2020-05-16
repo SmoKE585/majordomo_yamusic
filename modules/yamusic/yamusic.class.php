@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.0 Beta';
+		$this->version = '4.1';
 		$this->checkInstalled();
 	}
 
@@ -45,6 +45,7 @@ class yamusic extends module {
 		global $autoplay;
 		global $showplaylist;
 		global $stylebtn;
+		global $playlist;
 		
 		if (isset($blur)) {
 			$this->blur=$blur;
@@ -72,6 +73,9 @@ class yamusic extends module {
 		}
 		if (isset($stylebtn)) {
 			$this->stylebtn=$stylebtn;
+		}
+		if (isset($playlist)) {
+			$this->playlist=$playlist;
 		}
 		//--------------------------------------
 		
@@ -144,6 +148,12 @@ class yamusic extends module {
 			$select[$key]['USERNAME'] = $this->loadUserInfo($value['OWNER'], 1)['FULLNAME'];
 			($selectSum['COUNT(*)'] != 0) ? $select[$key]['ISAVAIL'] = 1 : $select[$key]['ISAVAIL'] = 0;
 		}
+		
+		return $select;
+	}
+	
+	function playlistOwner($playlistID) {
+		$select = SQLSelectOne("SELECT `OWNER` FROM `yamusic_playlist` WHERE `PLAYLISTID` = '".$playlistID."'");
 		
 		return $select;
 	}
@@ -644,16 +654,6 @@ class yamusic extends module {
 		$this->admin($out);
 		$this->getConfig();
 		
-		//Получим UID активное пользователя и пока только мне нравится
-		$loadAllUsers = $this->loadAllUser();
-		//Найдем основного юзера
-		foreach($loadAllUsers as $value) {
-			if($value['SELECTED'] == 1) {
-				$mainUser = $value['UID'];
-				break;
-			}
-		}
-		
 		($this->blur == 1) ? $out['SCENE_PLAYER_BLUR'] = 1 : $out['SCENE_PLAYER_BLUR'] = 0;
 		($this->width) ? $out['SCENE_PLAYER_WIDTH'] = $this->width : $out['SCENE_PLAYER_WIDTH'] = 300;
 		($this->height) ? $out['SCENE_PLAYER_HEIGHT'] = $this->height : $out['SCENE_PLAYER_HEIGHT'] = 0;
@@ -664,8 +664,23 @@ class yamusic extends module {
 		($this->onlycontrol) ? $out['SCENE_PLAYER_ONLYCONTROL'] = $this->onlycontrol : $out['SCENE_PLAYER_ONLYCONTROL'] = 0;
 		if($this->styleplayer) $out['SCENE_PLAYER_STYLEPLAYER'] = str_replace("#", "_COL_", $this->styleplayer);
 		
-		$out['SCENE_PLAYER_UID'] = $mainUser;
-		$out['SCENE_PLAYER_PLAYLIST'] = '-1'.$mainUser;
+		if(empty($this->playlist)) {
+			//Получим UID активное пользователя и пока только мне нравится
+			$loadAllUsers = $this->loadAllUser();
+			//Найдем основного юзера
+			foreach($loadAllUsers as $value) {
+				if($value['SELECTED'] == 1) {
+					$mainUser = $value['UID'];
+					break;
+				}
+			}
+			
+			$out['SCENE_PLAYER_UID'] = $mainUser;
+			$out['SCENE_PLAYER_PLAYLIST'] = '-1'.$mainUser;
+		} else {
+			$out['SCENE_PLAYER_PLAYLIST'] = $this->playlist;
+			$out['SCENE_PLAYER_UID'] = $this->playlistOwner($this->playlist)['OWNER'];
+		}
 		
 		$out['FRAME_USUAL_SETVOLUME'] = $this->config['VOLUME_PUANDSCENE'];
 		if(empty($out['FRAME_USUAL_SETVOLUME'])) $out['FRAME_USUAL_SETVOLUME'] = 1;

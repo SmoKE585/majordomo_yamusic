@@ -20,7 +20,7 @@ $showplaylist = (int) $_GET['showplaylist'];
 
 if(!$stylePlayer && $blur == 0) $stylePlayer = 'padding: 15px;background: #9E9E9E;';	
 if(!$stylebtn) {
-	$stylebtn = 'border: 1px solid white;border-radius: 50px;background: white;padding: 10px;';
+	$stylebtn = 'border: 1px solid white;border-radius: 50px;background: white;padding: 10px;margin-top: 20px;';
 }
 
 if($showplaylist == 1) {
@@ -35,8 +35,6 @@ if($onlycontrol == 1) {
 	unset($stylePlayer);
 	unset($blur);
 	$btncolorPadd = 'margin-top: 0px;';
-} else {
-	$btncolorPadd = 'margin-top: 20px;';
 }
 ?>
 <html>
@@ -109,12 +107,17 @@ if($onlycontrol == 1) {
 						$('#startPlayMusicLoad').hide();
 						//Инфо о треке
 						if(responce[0].NAMESONG.length > 20) {
-							$('#songName').html('<marquee behavior="alternate" direction="left" style="margin-bottom: -6px;" scrollamount="3">'+responce[0].NAMESONG+'</marquee>');
+							$('#songName').html('<marquee behavior="alternate" direction="left" style="margin-bottom: -6px;width: 95%;" scrollamount="3">'+responce[0].NAMESONG+'</marquee>');
 						} else {
 							$('#songName').html(responce[0].NAMESONG);
 						}
 						
-						$('#artistsName').html(responce[0].ARTISTS);
+						if(responce[0].ARTISTS.length > 20) {
+							$('#artistsName').html('<marquee behavior="alternate" direction="left" style="margin-bottom: -6px;width: 95%;" scrollamount="3">'+responce[0].ARTISTS+'</marquee>');
+						} else {
+							$('#artistsName').html(responce[0].ARTISTS);
+						}
+						
 						$('#coverSong').attr('src', responce[0].COVER);
 						
 						$('#shaffleBotton').show();
@@ -157,7 +160,7 @@ if($onlycontrol == 1) {
 			nowTrackTime = Math.round($('#musicPlayer').get(0).currentTime);
 			
 			countNowTime = nowTrackTime/allTrackTime*100;
-			$('#buttonControl').attr('style', 'background: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-repeat: repeat-y;<?php echo $stylebtn;?>');
+			$('#buttonControl').attr('style', '<?php echo $stylebtn;?>background-image: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-repeat: repeat-y;');
 		}
 		
 		function prevPlayMusic() {
@@ -279,7 +282,7 @@ if($onlycontrol == 1) {
 				<input type="range" id="volumeSetControl" onChange="rangeVolumeSet('PUANDSCENE')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
 			</div>
 			
-			<div id="buttonControl" class="text-center playerDefaul" style="<?php echo $stylebtn;?>">
+			<div id="buttonControl" class="text-center playerDefaul" style="<?php echo $stylebtn;?><?php echo $btncolorPadd;?>">
 				<?php if($onlycontrol != 1) echo '<i class="las la-volume-up" onclick="$(\'#informationCoverSongDIV\').toggle();$(\'#volumeControlDIV\').toggle();" id="volumeBotton" style="display: none;font-size: 2.3rem;margin-right: 15px;vertical-align: super;"></i>';?>
 				
 				<i class="las la-backward" style="display:none;font-size: 4rem; color: rgb(93, 83, 134); margin-right: 15px;" id="prevTrack" onclick="prevPlayMusic();"></i>

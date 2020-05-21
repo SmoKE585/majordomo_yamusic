@@ -392,7 +392,10 @@
 				</div>
 			</div>
 		[#else TOTAL_PLAYLIST_NEEDLOAD#]
-		<h4>Треки из плейлиста <b>[#PLAYLIST_CURRENT_NAME#]</b> (Всего [#TOTAL_PLAYLIST_TRACKS#], показано [#TOTAL_PLAYLIST_SHOWTRACKS#])</h4>
+		<h4>Плейлист: <b>[#PLAYLIST_CURRENT_NAME#]</b></h4>
+		<p>ID плейлиста: [#PLAYLIST_CURRENT#], всего треков [#TOTAL_PLAYLIST_TRACKS#], показано [#TOTAL_PLAYLIST_SHOWTRACKS#]<br>
+		Ссылка для терминалов: <code style="white-space: normal;">http://[#SERVER_IP#]/modules/yamusic/pl.php?playlistID=[#PLAYLIST_CURRENT#]&owner=[#ACCOUNT_UID#]&shaffle=1&secure=http</code></p>
+		<hr>
 		<table class="table table-stripped" style="font-size: 1.2rem;">
 			<tbody>
 				[#begin PLAYLIST_MUSICLIST#]
@@ -435,16 +438,18 @@
 			</li>
 			<li class="list-group-item">
 				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;" data-toggle="modal" data-target="#volumeControl">
-					<span style="vertical-align: top;">Настроить</span>
+					<span style="vertical-align: top;">Открыть</span>
 				</span>
 				<i class="las la-volume-up" style="font-size: 2rem;color: black;vertical-align: top;"></i> Громкость
 			</li>
+			<!---
 			<li class="list-group-item">
-				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;" data-toggle="modal" data-target="#volumeControl">
-					<span style="vertical-align: top;">Настроить</span>
+				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;" data-toggle="modal" data-target="#terminalSettings">
+					<span style="vertical-align: top;">Открыть</span>
 				</span>
-				<i class="las la-volume-up" style="font-size: 2rem;color: black;vertical-align: top;" onclick="trackListInfo();"></i> Тест
+				<i class="las la-share-square" style="font-size: 2rem;color: black;vertical-align: top;"></i> Настройки терминалов
 			</li>
+			--->
 		</ul>
 	</div>
 	

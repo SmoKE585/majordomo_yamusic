@@ -1,13 +1,14 @@
 <?php
+$songID = $_GET['songID'];
 $playlistID = $_GET['playlistID'];
 $owner = $_GET['owner'];
-$shaffle = $_GET['shaffle'];
-$songID = $_GET['songID'];
-$secure = $_GET['secure'];
 
-$array = json_decode(file_get_contents($secure.'://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/json.php?mode=track&playlist='.$playlistID.'&count=1&owner='.$owner.'&shaffle='.$shaffle.'&songID='.$songID), TRUE);
+if(!$songID) {
+	http_response_code(404);
+	die();
+}
 
-$link = $array[0]['LINK'];
+$array = json_decode(file_get_contents('http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/json.php?mode=track&playlist='.$playlistID.'&owner='.$owner.'&songID='.$songID), TRUE);
+
 header("Location: ".$array[0]['LINK']);
-
 ?>

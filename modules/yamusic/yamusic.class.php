@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.3';
+		$this->version = '4.5';
 		$this->checkInstalled();
 	}
 
@@ -312,6 +312,8 @@ class yamusic extends module {
 				SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
 			}
 		}
+		//Генерим плейлисты
+		$this->generatePlaylistM3U($playlistID, $userUID);
 		
 		return ;
 		//$this->redirect("?mode=loadPlayList&playlistID=".$playlistID);
@@ -326,6 +328,33 @@ class yamusic extends module {
 		$link = $link[0]->directLink;
 		
 		return $link;
+	}
+	
+	function generatePlaylistM3U($playlistID, $owner) {
+		//if($playlistID || $owner) return;
+		
+		if(!is_dir(DIR_MODULES.$this->name.'/m3u8/')) {
+			mkdir(DIR_MODULES.$this->name.'/m3u8/', 0777, true);
+		}
+		
+		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."'");
+		
+$string = '#EXTM3U
+';
+		
+		foreach($selectMusic as $key => $value) {
+$string .= '#EXTINF:'.($value['DURATION']*1000).', '.$value['NAMESONG'].' - '.$value['ARTISTS'].'
+';
+$string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID='.$playlistID.'&owner='.$owner.'&songID='.$value['SONGID'].'
+
+';
+		}
+		
+		$openPL = fopen(DIR_MODULES.$this->name."/m3u8/pl_".$playlistID."_".$owner.".m3u8", 'w') or $error = 'Нет прав на запись файла!';
+		fwrite($openPL, $string);
+		fclose($openPL);
+		
+		return $error;
 	}
 	
 	function microTimeConvert($ms, $format) {
@@ -485,7 +514,7 @@ class yamusic extends module {
 			$out['ACCOUNT_ID'] = $loadUserInfo['ID'];
 			$out['ACCOUNT_LOGIN'] = $loadUserInfo['USERNAME'];
 			$out['ACCOUNT_NAME'] = $loadUserInfo['FULLNAME'];
-			$out['ACCOUNT_REGDATE'] = $loadUserInfo['REGDATE'];
+			
 			if($loadUserInfoSub->plus->hasPlus == true) { 
 				$out['ACCOUNT_AVAIL'] = '<span style="color: green">Подписка активна</span>';
 			} else {
@@ -496,10 +525,11 @@ class yamusic extends module {
 			
 			
 			$out['ACCOUNT_PLUS_AVAIL'] = $loadUserInfoSub->plus->hasPlus;
-			$out['ACCOUNT_SUB_END_DATE'] = date('d.m.Y H:i:s', strtotime($loadUserInfoSub->subscription->autoRenewable[0]->expires));
-			$out['ACCOUNT_SUB_HOWDATE_PAY'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->duration;
-			$out['ACCOUNT_SUB_HOWPAY'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->price->amount;
-			$out['ACCOUNT_SUB_HOWPAY_CURR'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->price->currency;
+			(!empty($loadUserInfo['REGDATE'])) ? $out['ACCOUNT_REGDATE'] = $loadUserInfo['REGDATE'] : $out['ACCOUNT_REGDATE'] = $loadUserInfoSub->permissions->until;
+			(!empty($loadUserInfoSub->subscription->autoRenewable[0]->expires)) ? $out['ACCOUNT_SUB_END_DATE'] = date('d.m.Y H:i:s', strtotime($loadUserInfoSub->subscription->autoRenewable[0]->expires)) : $out['ACCOUNT_SUB_END_DATE'] = date('d.m.Y H:i:s', strtotime($loadUserInfoSub->subscription->nonAutoRenewable->end));
+			(!empty($loadUserInfoSub->subscription->autoRenewable[0]->product->duration)) ? $out['ACCOUNT_SUB_HOWDATE_PAY'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->duration : $out['ACCOUNT_SUB_HOWDATE_PAY'] = '';
+			(!empty($loadUserInfoSub->subscription->autoRenewable[0]->product->price->amount)) ? $out['ACCOUNT_SUB_HOWPAY'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->price->amount : $out['ACCOUNT_SUB_HOWPAY'] = '';
+			(!empty($loadUserInfoSub->subscription->autoRenewable[0]->product->price->currency)) ? $out['ACCOUNT_SUB_HOWPAY_CURR'] = $loadUserInfoSub->subscription->autoRenewable[0]->product->price->currency : $out['ACCOUNT_SUB_HOWPAY_CURR'] = '';
 			$out['ACCOUNT_SUB_TOEND'] = $loadUserInfoSub->subscription->autoRenewable[0]->finished;
 
 			//Метка, что юзер есть в БД
@@ -533,19 +563,8 @@ class yamusic extends module {
 			}
 			
 			if($this->mode == 'test') {
-				require_once(DIR_MODULES.$this->name.'/client.php');
-				$accountInfo = new Client($loadUserInfo['TOKEN']);
+				$this->generatePlaylistM3U('-141897924', '41897924');
 				
-				// $test = $accountInfo->search('знаешь ли ты', false,'track',0,false);
-				// echo '<pre>';
-				// var_dump($test);
-				// die();
-				
-				
-				$test = $accountInfo->rotorStationGenreFeedbackRadioStarted('tradjazz', $loadUserInfo['UID']);
-				echo '<pre>';
-				var_dump($test);
-				die();
 			}
 			
 			if(empty($this->mode)) $this->playlistID = '-1'.$loadUserInfo['UID'];
@@ -561,7 +580,7 @@ class yamusic extends module {
 				$out['PLAYLIST_CURRENT_SYSTEMNAME'] = $this->mode;
 				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
 				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
-				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;			
+				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;
 			} else if($this->mode == 'playlistDejavu') {
 				($this->view_mode == 'reload') ? $needReload = true : $needReload = false;
 				$loadDataInPlaylist = $this->loadUserSpecialPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID'], 'Дежавю', $needReload);
@@ -616,8 +635,15 @@ class yamusic extends module {
 				}
 			}
 			
+			if(is_file(DIR_MODULES.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u8')) {
+				$out['FULL_PATH_FOR_PLAYLIST_M3U8'] = 'http://'.$_SERVER["SERVER_ADDR"].'/modules/'.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u8';
+			} else {
+				$out['FULL_PATH_FOR_PLAYLIST_M3U8'] = '';
+			}
+			
+			
 			//Посмотрим в БД есть ли ТВ LG
-			$isHaveLGTV_isUse = SQLExec("SHOW TABLES FROM `db_terminal` LIKE 'lgwebostv_commands'");
+			$isHaveLGTV_isUse = SQLExec("SHOW TABLES FROM `".DB_NAME."` LIKE 'lgwebostv_commands'");
 			
 			if($isHaveLGTV_isUse->num_rows == 1) {
 				$isHaveLGTV = SQLSelect("SELECT * FROM `lgwebostv_commands` WHERE `LINKED_OBJECT` != '' AND `LINKED_PROPERTY` != '' ORDER BY `ID`");
@@ -648,6 +674,7 @@ class yamusic extends module {
 			if(empty($out['VOLUME_PUANDSCENE'])) $out['VOLUME_PUANDSCENE'] = 1;
 			$out['VOLUME_TVLG'] = $this->config['VOLUME_TVLG'];
 			if(empty($out['VOLUME_TVLG'])) $out['VOLUME_TVLG'] = 1;
+			$out['MAIN_TERMINAL'] = $this->config['MAIN_TERMINAL'];
 		} else {
 			//Метка, что юзера НЕТ в БД
 			$out['ISUSER'] = 0;

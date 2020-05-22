@@ -41,5 +41,32 @@ if($_GET['action'] == 'saveVolume') {
 	$class->setAudioVolume($chanel, $value);
 }
 
+if($_GET['action'] == 'saveTerminal') {
+	$terminal = strip_tags($_GET['terminal']);
+	
+	$class = new yamusic();
+	
+	$class->getConfig();
+	$class->config['MAIN_TERMINAL'] = $terminal;
+	$class->saveConfig();
+}
+
+if($_GET['action'] == 'sendOnTerminal') {
+	$playlist = urldecode(strip_tags($_GET['pl']));
+	$terminal = urldecode(strip_tags($_GET['terminal']));
+	
+	$class = new yamusic();
+	
+	playMedia($playlist,$terminal);
+}
+
+if($_GET['action'] == 'genPLS') {
+	$playlist = urldecode(strip_tags($_GET['playlist']));
+	$owner = urldecode(strip_tags($_GET['owner']));
+	
+	$class = new yamusic();
+	$class->generatePlaylistM3U($playlist, $owner);
+}
+
 echo json_encode(array('status' => 'OK'));
 ?>

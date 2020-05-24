@@ -55,9 +55,48 @@ if($_GET['action'] == 'sendOnTerminal') {
 	$playlist = urldecode(strip_tags($_GET['pl']));
 	$terminal = urldecode(strip_tags($_GET['terminal']));
 	
-	$class = new yamusic();
+	//$class = new yamusic();
 	
-	playMedia($playlist,$terminal);
+	include_once (DIR_MODULES . 'app_player/app_player.class.php');
+    $player = new app_player();
+    $player->play_terminal = $terminal;
+    // Имя терминала
+    $player->command = ($safe_play ? 'safe_play' : 'play');
+    // Команда
+    $player->param = $playlist;
+    // Параметр
+    $player->ajax = TRUE;
+    $player->intCall = TRUE;
+    $player->usual($out);
+    $status = $player->json['message'];
+}
+
+if($_GET['action'] == 'sendCmd') {
+	$cmd = urldecode(strip_tags($_GET['cmd']));
+	$value = urldecode(strip_tags($_GET['value']));
+	$terminal = urldecode(strip_tags($_GET['terminal']));
+	
+	$sqlQuery = "SELECT * FROM `terminals` WHERE `NAME` = '" . DBSafe($terminal) . "' OR `TITLE` = '" . DBSafe($terminal) . "' ORDER BY `ID` ASC";
+	$terminals = SQLSelect($sqlQuery);
+	$type = $terminals[0]['PLAYER_TYPE'];
+
+	if($type == 'vlcweb' && $cmd == 'volume') {
+		$value = round($value*2.56);
+		file_get_contents('http://'.$terminals[0]['HOST'].':'.$terminals[0]['PLAYER_PORT'].'/requests/status.xml?command=volume&val='.$value);
+	} else {
+		include_once (DIR_MODULES . 'app_player/app_player.class.php');
+		$player = new app_player();
+		$player->play_terminal = $terminal;
+		// Имя терминала
+		$player->command = $cmd;
+		// Команда
+		//$player->param = $value;
+		// Параметр
+		$player->ajax = TRUE;
+		$player->intCall = TRUE;
+		$player->usual($out);
+		$status = $player->json['data'];
+	}
 }
 
 if($_GET['action'] == 'genPLS') {
@@ -68,5 +107,5 @@ if($_GET['action'] == 'genPLS') {
 	$class->generatePlaylistM3U($playlist, $owner);
 }
 
-echo json_encode(array('status' => 'OK'));
+echo json_encode(array('status' => 'OK', 'responce' => $status));
 ?>

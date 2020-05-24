@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.5';
+		$this->version = '4.6';
 		$this->checkInstalled();
 	}
 
@@ -672,9 +672,17 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 			$this->getConfig();
 			$out['VOLUME_PUANDSCENE'] = $this->config['VOLUME_PUANDSCENE'];
 			if(empty($out['VOLUME_PUANDSCENE'])) $out['VOLUME_PUANDSCENE'] = 1;
+			
 			$out['VOLUME_TVLG'] = $this->config['VOLUME_TVLG'];
 			if(empty($out['VOLUME_TVLG'])) $out['VOLUME_TVLG'] = 1;
+			
+			$out['VOLUME_TERMINALVOL'] = $this->config['VOLUME_TERMINALVOL'];
+			$out['VOLUME_TERMINALVOL_JS'] = $this->config['VOLUME_TERMINALVOL']*100;
+			if(empty($out['VOLUME_TERMINALVOL'])) $out['VOLUME_TERMINALVOL'] = 100;
+			
+			
 			$out['MAIN_TERMINAL'] = $this->config['MAIN_TERMINAL'];
+			
 		} else {
 			//Метка, что юзера НЕТ в БД
 			$out['ISUSER'] = 0;

@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.6';
+		$this->version = '4.7';
 		$this->checkInstalled();
 	}
 
@@ -331,7 +331,7 @@ class yamusic extends module {
 	}
 	
 	function generatePlaylistM3U($playlistID, $owner) {
-		//if($playlistID || $owner) return;
+		if(!$playlistID || !$owner) return;
 		
 		if(!is_dir(DIR_MODULES.$this->name.'/m3u8/')) {
 			mkdir(DIR_MODULES.$this->name.'/m3u8/', 0777, true);
@@ -350,7 +350,7 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 ';
 		}
 		
-		$openPL = fopen(DIR_MODULES.$this->name."/m3u8/pl_".$playlistID."_".$owner.".m3u8", 'w') or $error = 'Нет прав на запись файла!';
+		$openPL = fopen(DIR_MODULES.$this->name."/m3u8/pl_".$playlistID."_".$owner.".m3u", 'w') or $error = 'Нет прав на запись файла!';
 		fwrite($openPL, $string);
 		fclose($openPL);
 		
@@ -428,7 +428,7 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 	}
 	
 	function selectMusicInDB ($playlistID, $owner, $playListName) {
-		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."'");
+		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."' ORDER BY `ID`");
 		
 		//Выгрузим музыку пользователя
 		$countMusicList = 0;	
@@ -635,10 +635,10 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 				}
 			}
 			
-			if(is_file(DIR_MODULES.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u8')) {
-				$out['FULL_PATH_FOR_PLAYLIST_M3U8'] = 'http://'.$_SERVER["SERVER_ADDR"].'/modules/'.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u8';
+			if(is_file(DIR_MODULES.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u')) {
+				$out['FULL_PATH_FOR_PLAYLIST_M3U'] = 'http://'.$_SERVER["SERVER_ADDR"].'/modules/'.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u';
 			} else {
-				$out['FULL_PATH_FOR_PLAYLIST_M3U8'] = '';
+				$out['FULL_PATH_FOR_PLAYLIST_M3U'] = '';
 			}
 			
 			

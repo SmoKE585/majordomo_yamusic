@@ -486,9 +486,9 @@
 				</span>
 				<i class="las la-tv" style="font-size: 2rem;color: black;vertical-align: top;"></i> Отправить на ТВ
 			</li>
-			<li class="list-group-item noneTerminalDiv" [#if MAIN_TERMINAL == '' OR FULL_PATH_FOR_PLAYLIST_M3U8 == ''#]style="display:none;"[#endif#]>
+			<li class="list-group-item noneTerminalDiv" [#if MAIN_TERMINAL == '' OR FULL_PATH_FOR_PLAYLIST_M3U == ''#]style="display:none;"[#endif#]>
 				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;">
-					<span style="vertical-align: top;font-weight: bold;border: 1px solid #276d09;padding: 5px 10px 5px 10px;border-radius: 5px;background: #5cb85c;color: white;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U8#]', $('#terminalName').val());" id="sendOnTerminalBtn"><i class="las la-terminal" ></i> <span>[#MAIN_TERMINAL#]</span></span>
+					<span style="vertical-align: top;font-weight: bold;border: 1px solid #276d09;padding: 5px 10px 5px 10px;border-radius: 5px;background: #5cb85c;color: white;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U#]', $('#terminalName').val());" id="sendOnTerminalBtn"><i class="las la-terminal" ></i> <span>[#MAIN_TERMINAL#]</span></span>
 				</span>
 				<i class="las la-terminal" style="font-size: 2rem;color: black;vertical-align: top;"></i> Отправить на терминал
 			</li>
@@ -563,19 +563,19 @@
 						Состояние плейлиста:
 					</div>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
-						[#if FULL_PATH_FOR_PLAYLIST_M3U8 != ''#]
+						[#if FULL_PATH_FOR_PLAYLIST_M3U != ''#]
 							<span style="color: green;"><i class="las la-podcast"></i> Сформирован</span>
 						[#else#]
 							<span style="color: red;cursor: pointer;" onClick="genPLS('[#PLAYLIST_CURRENT#]', '[#ACCOUNT_UID#]');$(this).text('Создаем плейлист...');"><i class="las la-podcast"></i> Не сформирован, создать?</span>
 						[#endif#]
 					</div>
 				</div>
-				<div class="row noneTerminalDiv" [#if MAIN_TERMINAL == '' OR FULL_PATH_FOR_PLAYLIST_M3U8 == ''#]style="display:none;"[#endif#]>
+				<div class="row noneTerminalDiv" [#if MAIN_TERMINAL == '' OR FULL_PATH_FOR_PLAYLIST_M3U == ''#]style="display:none;"[#endif#]>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
 						Проверить работу
 					</div>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
-						<span style="color: #fff;background-color: #5cb85c;border-color: #4cae4c;padding: 8px;border-radius: 3px;cursor: pointer;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U8#]', $('#terminalName').val());" id="testBtnTerminal"><i class="las la-play-circle"></i> Отправить на терминал: <span id="terminalNameTest">[#MAIN_TERMINAL#]</span></span>
+						<span style="color: #fff;background-color: #5cb85c;border-color: #4cae4c;padding: 8px;border-radius: 3px;cursor: pointer;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U#]', $('#terminalName').val());" id="testBtnTerminal"><i class="las la-play-circle"></i> Отправить на терминал: <span id="terminalNameTest">[#MAIN_TERMINAL#]</span></span>
 					</div>
 				</div>
 				<div class="row" style="margin-top: 25px;">

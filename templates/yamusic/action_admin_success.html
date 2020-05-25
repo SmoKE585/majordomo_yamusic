@@ -141,10 +141,26 @@
 			$.getJSON({
 				url: '/modules/yamusic/ajax.php?action=sendOnTerminal&pl='+encodeURI(value)+'&terminal='+terminalName,
 				success: function(responce) {
-					$('#testBtnTerminal').html('<i class="las la-play-circle"></i> Запрос отправлен на <span id="terminalNameTest">'+terminalName+'</span>!');
+					if(responce.responce == 'OK') {
+						$('#testBtnTerminal').html('<i class="las la-play-circle"></i> Запрос отправлен на <span id="terminalNameTest">'+terminalName+'</span>!');
+						sendCmd('set_volume', $('#volumeSetControl_TERMINALVOL').val());
+					}
 				},
 				error: function(responce) {
 					alert('Ошибка AJAX - sendOnTerminal');
+				}
+			});			
+		}
+		
+		function sendCmd(cmd, value) {
+			terminalName = $('#terminalName').val();
+			$.getJSON({
+				url: '/modules/yamusic/ajax.php?action=sendCmd&cmd='+cmd+'&value='+value+'&terminal='+terminalName,
+				success: function(responce) {
+					console.log(responce);
+				},
+				error: function(responce) {
+					alert('Ошибка AJAX - sendCmd');
 				}
 			});			
 		}
@@ -156,7 +172,7 @@
 					window.location = "/admin.php?md=panel&inst=&action=yamusic&mode=loadPlayList&playlistID="+playlist;
 				},
 				error: function(responce) {
-					alert('Ошибка AJAX - sendOnTerminal');
+					alert('Ошибка AJAX - genPLS');
 				}
 			});			
 		}
@@ -341,6 +357,7 @@
 		function rangeVolumeSet(chanel) {
 			let audio = document.querySelector('audio');
 			val = $('#volumeSetControl_'+chanel).val();
+			if(chanel == 'TERMINALVOL') sendCmd('set_volume', val);
 			audio.volume = val/100;
 			
 			saveVolume(chanel, val/100);
@@ -360,6 +377,10 @@
 			$('#setShowVolume_TVLG').text('[#VOLUME_TVLG#]'*100);
 			$('#volumeSetControl_TVLG').val('[#VOLUME_TVLG#]'*100);
 			$('#volumeSetControl_TVLG').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+'[#VOLUME_TVLG#]'*100+'%,#fff '+'[#VOLUME_TVLG#]'*100+'%, #fff 100%)'});
+			
+			$('#setShowVolume_TERMINALVOL').text('[#VOLUME_TERMINALVOL#]'*100);
+			$('#volumeSetControl_TERMINALVOL').val('[#VOLUME_TERMINALVOL#]'*100);
+			$('#volumeSetControl_TERMINALVOL').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+'[#VOLUME_TERMINALVOL#]'*100+'%,#fff '+'[#VOLUME_TERMINALVOL#]'*100+'%, #fff 100%)'});
 			
 			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #d6ecff;');
 		});
@@ -400,14 +421,7 @@
 					<br>
 					В дальнейшем открытие скаченного плейлиста будет происходить быстро, т.к. все данные будут в вашей БД.
 					<br><br>
-					Загружайте плейлисты и погнали! =)
-					<br><br>
-					<div class="text-center">
-						<form action="?" method="post" enctype="multipart/form-data">
-							<input type="hidden" name="mode" value="reloadplaylist">
-							<button type="submit" class="btn btn-success">Обновить список плейлистов</button>
-						</form>
-					</div>
+					Выбирайте плейлист и погнали слушать!
 				</div>
 			</div>
 		[#else LOADPLAYLISTDONE#]
@@ -457,6 +471,7 @@
 		[#endif LOADPLAYLISTDONE#]
 	</div>
 	<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="">
+		<button onclick="sendCmd('name');">ЖМИ МЕНЯ ПОЛНОСТЬЮ!</button>
 		<h4>Настройки и управление</h4>
 		<ul class="list-group">
 			<li class="list-group-item">
@@ -474,9 +489,9 @@
 			</li>
 			<li class="list-group-item noneTerminalDiv" [#if MAIN_TERMINAL == '' OR FULL_PATH_FOR_PLAYLIST_M3U8 == ''#]style="display:none;"[#endif#]>
 				<span style="float: right;background-color: white;padding: 0px;color: black;cursor:pointer;">
-					<span style="vertical-align: top;font-weight: bold;border: 1px solid #276d09;padding: 5px 10px 5px 10px;border-radius: 5px;background: #5cb85c;color: white;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U8#]', '$(\'#terminalName\').val()');" id="sendOnTerminalBtn"><i class="las la-terminal" ></i> <span>[#MAIN_TERMINAL#]</span></span>
+					<span style="vertical-align: top;font-weight: bold;border: 1px solid #276d09;padding: 5px 10px 5px 10px;border-radius: 5px;background: #5cb85c;color: white;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U8#]', $('#terminalName').val());" id="sendOnTerminalBtn"><i class="las la-terminal" ></i> <span>[#MAIN_TERMINAL#]</span></span>
 				</span>
-				<i class="las la-volume-up" style="font-size: 2rem;color: black;vertical-align: top;"></i> Отправить на терминал
+				<i class="las la-terminal" style="font-size: 2rem;color: black;vertical-align: top;"></i> Отправить на терминал
 			</li>
 			
 			<li class="list-group-item">
@@ -541,7 +556,7 @@
 						Терминал по умолчанию:
 					</div>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
-						<input type="text" id="terminalName" value="[#MAIN_TERMINAL#]" style="outline: none;border: 1px solid gray;width: 100%;text-align: center;border-radius: 5px;text-transform: uppercase;font-weight: bold;background: #f7f7f7;">
+						<input type="text" id="terminalName" value="[#MAIN_TERMINAL#]" style="outline: none;border: 1px solid gray;width: 100%;text-align: center;border-radius: 5px;font-weight: bold;background: #f7f7f7;">
 					</div>
 				</div>
 				<div class="row" style="margin-bottom: 15px;">
@@ -561,7 +576,7 @@
 						Проверить работу
 					</div>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
-						<span style="color: #fff;background-color: #5cb85c;border-color: #4cae4c;padding: 8px;border-radius: 3px;cursor: pointer;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U8#]', '$(\'#terminalName\').val()');" id="testBtnTerminal"><i class="las la-play-circle"></i> Отправить на терминал: <span id="terminalNameTest">[#MAIN_TERMINAL#]</span></span>
+						<span style="color: #fff;background-color: #5cb85c;border-color: #4cae4c;padding: 8px;border-radius: 3px;cursor: pointer;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U8#]', $('#terminalName').val());" id="testBtnTerminal"><i class="las la-play-circle"></i> Отправить на терминал: <span id="terminalNameTest">[#MAIN_TERMINAL#]</span></span>
 					</div>
 				</div>
 				<div class="row" style="margin-top: 25px;">
@@ -594,6 +609,13 @@
 						<i class="las la-volume-up"></i> <span id="setShowVolume_TVLG"></span>%
 					</div>
 					<input type="range" id="volumeSetControl_TVLG" onChange="rangeVolumeSet('TVLG')" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
+				</div>
+				<h4 style="border-top: 1px solid #e7e7e7;padding-top: 10px;">Громкость для терминалов: (TERMINALVOL)</h4>
+				<div>
+					<div class="text-center" style="font-size: 4rem;">
+						<i class="las la-volume-up"></i> <span id="setShowVolume_TERMINALVOL"></span>%
+					</div>
+					<input type="range" id="volumeSetControl_TERMINALVOL" onChange="rangeVolumeSet('TERMINALVOL');" min="0" max="100" style="width: 100%;-webkit-appearance: none;border-radius: 2px;height: 10px;outline: none;border: 1px solid #D4D4D4;" value="0">
 				</div>
 			</div>
 		</div>

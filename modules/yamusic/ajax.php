@@ -80,23 +80,18 @@ if($_GET['action'] == 'sendCmd') {
 	$terminals = SQLSelect($sqlQuery);
 	$type = $terminals[0]['PLAYER_TYPE'];
 
-	if($type == 'vlcweb' && $cmd == 'volume') {
-		$value = round($value*2.56);
-		file_get_contents('http://'.$terminals[0]['HOST'].':'.$terminals[0]['PLAYER_PORT'].'/requests/status.xml?command=volume&val='.$value);
-	} else {
-		include_once (DIR_MODULES . 'app_player/app_player.class.php');
-		$player = new app_player();
-		$player->play_terminal = $terminal;
-		// Имя терминала
-		$player->command = $cmd;
-		// Команда
-		//$player->param = $value;
-		// Параметр
-		$player->ajax = TRUE;
-		$player->intCall = TRUE;
-		$player->usual($out);
-		$status = $player->json['data'];
-	}
+	include_once (DIR_MODULES . 'app_player/app_player.class.php');
+	$player = new app_player();
+	$player->play_terminal = $terminal;
+	// Имя терминала
+	$player->command = $cmd;
+	// Команда
+	$player->param = $value;
+	// Параметр
+	$player->ajax = TRUE;
+	$player->intCall = TRUE;
+	$player->usual($out);
+	$status = $player->json['message'];
 }
 
 if($_GET['action'] == 'genPLS') {

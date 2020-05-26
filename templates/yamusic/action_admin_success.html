@@ -152,10 +152,11 @@
 			});			
 		}
 		
-		function sendCmd(cmd, value) {
+		function sendCmd(cmd, value = '') {
 			terminalName = $('#terminalName').val();
+			if(value) value = '&value='+value; 
 			$.getJSON({
-				url: '/modules/yamusic/ajax.php?action=sendCmd&cmd='+cmd+'&value='+value+'&terminal='+terminalName,
+				url: '/modules/yamusic/ajax.php?action=sendCmd&cmd='+cmd+value+'&terminal='+terminalName,
 				success: function(responce) {
 					console.log(responce);
 				},
@@ -575,7 +576,7 @@
 						Проверить работу
 					</div>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
-						<span style="color: #fff;background-color: #5cb85c;border-color: #4cae4c;padding: 8px;border-radius: 3px;cursor: pointer;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U#]', $('#terminalName').val());" id="testBtnTerminal"><i class="las la-play-circle"></i> Отправить на терминал: <span id="terminalNameTest">[#MAIN_TERMINAL#]</span></span>
+						<span style="color: #fff;background-color: #5cb85c;border-color: #4cae4c;padding: 8px;border-radius: 3px;cursor: pointer;font-size: 1rem;" onClick="sendOnTerminal('[#FULL_PATH_FOR_PLAYLIST_M3U#]', $('#terminalName').val());" id="testBtnTerminal"><i class="las la-play-circle"></i> Отправить на терминал: <span id="terminalNameTest">[#MAIN_TERMINAL#]</span></span>
 					</div>
 				</div>
 				<div class="row" style="margin-top: 25px;">

@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.7';
+		$this->version = '4.8';
 		$this->checkInstalled();
 	}
 
@@ -343,10 +343,9 @@ $string = '#EXTM3U
 ';
 		
 		foreach($selectMusic as $key => $value) {
-$string .= '#EXTINF:'.($value['DURATION']*1000).', '.$value['NAMESONG'].' - '.$value['ARTISTS'].'
+$string .= '#EXTINF:0, '.$value['ARTISTS'].' - '.$value['NAMESONG'].'
 ';
 $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID='.$playlistID.'&owner='.$owner.'&songID='.$value['SONGID'].'
-
 ';
 		}
 		

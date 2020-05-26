@@ -79,21 +79,28 @@ if($_GET['action'] == 'sendCmd') {
 	$sqlQuery = "SELECT * FROM `terminals` WHERE `NAME` = '" . DBSafe($terminal) . "' OR `TITLE` = '" . DBSafe($terminal) . "' ORDER BY `ID` ASC";
 	$terminals = SQLSelect($sqlQuery);
 	$type = $terminals[0]['PLAYER_TYPE'];
-
-	include_once (DIR_MODULES . 'app_player/app_player.class.php');
-	$player = new app_player();
-	$player->play_terminal = $terminal;
-	// Имя терминала
-	$player->command = $cmd;
-	// Команда
-	$player->param = $value;
-	// Параметр
-	$player->ajax = TRUE;
-	$player->intCall = TRUE;
-	$player->usual($out);
-	$status = $player->json['message'];
+	
+	if($type == 'vlcweb' && $cmd == 'status') {
+		$xml = simplexml_load_string(file_get_contents('http://'.$terminals[0]['PLAYER_USERNAME'].':'.$terminals[0]['PLAYER_PASSWORD'].'@'.$terminals[0]['HOST'].':'.$terminals[0]['PLAYER_PORT'].'/requests/status.xml'), "SimpleXMLElement", LIBXML_NOCDATA);
+	
+		echo '<pre>';
+		var_dump($xml);
+		die();
+	} else {
+		include_once (DIR_MODULES . 'app_player/app_player.class.php');
+		$player = new app_player();
+		$player->play_terminal = $terminal;
+		// Имя терминала
+		$player->command = $cmd;
+		// Команда
+		if($value) $player->param = $value;
+		// Параметр
+		$player->ajax = TRUE;
+		$player->intCall = TRUE;
+		$player->usual($out);
+		$status = $player->json['message'];
+	}
 }
-
 if($_GET['action'] == 'genPLS') {
 	$playlist = urldecode(strip_tags($_GET['playlist']));
 	$owner = urldecode(strip_tags($_GET['owner']));

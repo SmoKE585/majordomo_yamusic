@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.8';
+		$this->version = '4.9';
 		$this->checkInstalled();
 	}
 
@@ -261,6 +261,36 @@ class yamusic extends module {
 		return $newDOM->accountStatus();
 	}
 	
+	function likeAction($userToken, $action, $songID, $owner) {
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		
+		//Ставим лайк или дизлайк
+		if($action == 'add') {
+			$newDOM->usersLikesTracksAdd($songID);
+			
+			//Копируем в БД трек
+			$getCover = $newDOM->tracks($songID);
+			$cover = mb_strlen($getCover[0]->coverUri)-2;
+			$cover = substr($getCover[0]->coverUri, 0, $cover);
+			
+			$selectSum = SQLSelectOne("SELECT COUNT(*) FROM `yamusic_music` WHERE `SONGID` = '".$songID."' AND `PLAYLISTID` = '-1".$owner."'");
+			
+			if($selectSum['COUNT(*)'] == 0) {
+				SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($songID)."','-1".dbSafe($owner)."','".dbSafe($owner)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
+			}
+			
+			return 'like';
+		} else {
+			$newDOM->usersLikesTracksRemove($songID);
+			
+			SQLExec("DELETE FROM `yamusic_music` WHERE `SONGID` = '".$songID."' AND `PLAYLISTID` = '-1".$owner."' AND `OWNER` = '".$owner."' LIMIT 1");
+			
+			return 'dislike';
+		}
+		
+	}
+	
 	function loadUserMusic($userToken, $userUID, $playlistID, $newOwner = false) {
 		//Загрузка МУЗЫКИ юзера из плейлиста
 		require_once(DIR_MODULES.$this->name.'/client.php');
@@ -272,7 +302,7 @@ class yamusic extends module {
 			
 			$likesTrack = $newDOM->getLikesTracks();
 			
-			foreach($likesTrack->tracks as $key => $value) {
+			foreach(array_reverse($likesTrack->tracks) as $key => $value) {
 				//Получим ID треков
 				$idTrack = $value->id;
 				//Получим обложку и название
@@ -294,7 +324,7 @@ class yamusic extends module {
 			$loadUserMusic = $newDOM->usersPlaylists($playlistID, $userUID);
 			$loadUserMusic = $loadUserMusic->result[0]->tracks;
 			
-			foreach($loadUserMusic as $key => $value) {
+			foreach(array_reverse($loadUserMusic) as $key => $value) {
 				//Получим ID треков
 				$idTrack = $value->id;
 				//Получим обложку и название
@@ -427,7 +457,7 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 	}
 	
 	function selectMusicInDB ($playlistID, $owner, $playListName) {
-		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."' ORDER BY `ID`");
+		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."' ORDER BY `ID` DESC");
 		
 		//Выгрузим музыку пользователя
 		$countMusicList = 0;	
@@ -435,6 +465,12 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 		
 		foreach($selectMusic as $key => $value) {
 			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'i:s');
+			if($playlistID == '-1'.$owner) {
+				$selectMusic[$key]['ISLIKE'] = 1;
+			} else {
+				$isLike = SQLSelectOne("SELECT COUNT(`ID`) FROM `yamusic_music` WHERE `SONGID` = '".$value['SONGID']."' AND `PLAYLISTID` = '-1".$owner."' AND `OWNER` = '".$owner."'");
+				if($isLike['COUNT(`ID`)'] != 0) $selectMusic[$key]['ISLIKE'] = 1;
+			}
 			$countMusicList++;
 		}
 		
@@ -511,6 +547,7 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 			//Отдаем в выдачу
 			$out['ACCOUNT_UID'] = $loadUserInfo['UID'];
 			$out['ACCOUNT_ID'] = $loadUserInfo['ID'];
+			$out['ACCOUNT_TOKEN'] = $loadUserInfo['TOKEN'];
 			$out['ACCOUNT_LOGIN'] = $loadUserInfo['USERNAME'];
 			$out['ACCOUNT_NAME'] = $loadUserInfo['FULLNAME'];
 			

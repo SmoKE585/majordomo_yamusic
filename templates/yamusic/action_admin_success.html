@@ -124,6 +124,25 @@
 			});			
 		}
 		
+		function like(token, action, id, owner) {
+			$.getJSON({
+				url: '/modules/yamusic/ajax.php?action=like&token='+token+'&type='+action+'&id='+id+'&owner='+owner,
+				success: function(responce) {
+					if(action == 'add') {
+						$('#likeIcon_'+id).attr('class', 'las la-heart');
+						$('#likeIcon_'+id).attr('onclick', "like(\'"+token+"\', \'del\', \'"+id+"\', \'"+owner+"\');");
+					} else {
+						$('#trsong_'+id).hide();
+						$('#likeIcon_'+id).attr('class', 'lar la-heart');
+						$('#likeIcon_'+id).attr('onclick', "like(\'"+token+"\', \'add\', \'"+id+"\', \'"+owner+"\');");
+					}
+				},
+				error: function(responce) {
+					alert('Ошибка AJAX - like');
+				}
+			});			
+		}
+		
 		function saveTerminal(value) {
 			$.getJSON({
 				url: '/modules/yamusic/ajax.php?action=saveTerminal&terminal='+value,
@@ -284,7 +303,7 @@
 						$('#pausePlayMusic_'+responce[0].SONGID).show();
 						
 						$('.clearTRNowTrack').attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;');
-						$('#trsong_'+responce[0].SONGID).attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;background: #d6ecff;');
+						$('#trsong_'+responce[0].SONGID).attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;background: #fcff92;');
 					})
 
 				},
@@ -383,7 +402,7 @@
 			$('#volumeSetControl_TERMINALVOL').val('[#VOLUME_TERMINALVOL#]'*100);
 			$('#volumeSetControl_TERMINALVOL').css({'background':'-webkit-linear-gradient(left ,#8870FF 0%,#8870FF '+'[#VOLUME_TERMINALVOL#]'*100+'%,#fff '+'[#VOLUME_TERMINALVOL#]'*100+'%, #fff 100%)'});
 			
-			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #d6ecff;');
+			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #fcff92;');
 		});
 		</script>
 		[#begin PLAYLIST#]
@@ -455,8 +474,9 @@
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#] - [#NAMESONG#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;width: 40%;text-align: right;">
+							<i id="likeIcon_[#SONGID#]" class="[#if ISLIKE == 1#]las[#else#]lar[#endif#] la-heart" onclick="like('<#ACCOUNT_TOKEN#>', '[#if ISLIKE == 1#]del[#else#]add[#endif#]', '[#SONGID#]', '[#OWNER#]');" style="font-size: 3rem;color: #f94474;vertical-align: super;"></i>
+							
 							<i class="las la-tv showSendOnTVAllIcon" onclick="sendOnTV($('#selectForTV').val(), '[#SONGID#]');" style="font-size: 4rem;display:none;"></i>
-							<!--- <i class="las la-cloud-upload-alt" onclick="alert('Отправить на терминал. В разработке');" style="font-size: 4rem;"></i> --->
 							
 							<img src="/templates/yamusic/img/load.gif" id="startPlayMusicLoad_[#SONGID#]" style="width: 40px;vertical-align: top;display: none;">
 							

@@ -13,6 +13,16 @@ require('yamusic.class.php');
 
 //?action=playOnTVPlaylist&obj='+object+'&prop='+prop+'&playlist='+playlist+'&owner='+owner,
 
+
+if($_GET['action'] == 'like' && !empty($_GET['token']) && !empty($_GET['id']) && !empty($_GET['owner'])) {
+	$id = strip_tags($_GET['id']);
+	$token = strip_tags($_GET['token']);
+	$owner = strip_tags($_GET['owner']);
+
+	$class = new yamusic();
+	$status = $class->likeAction($token, $_GET['type'], $id, $owner);
+}
+
 if($_GET['action'] == 'playOnTV') {
 	$action = strip_tags($_GET['action']);
 	$obj = strip_tags($_GET['obj']);

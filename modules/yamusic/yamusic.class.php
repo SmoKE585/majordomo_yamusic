@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '4.9';
+		$this->version = '5.0';
 		$this->checkInstalled();
 	}
 
@@ -184,11 +184,11 @@ class yamusic extends module {
 		}
 		
 		if($next != '' && $prev == '' && $shaffle == 0) {
-			$nextTrack = "AND `ID` > '".$next."'";
+			$nextTrack = "AND `ID` < '".$next."' ORDER BY `ID` DESC";
 		}
 		
 		if($prev != '' && $next == '' && $shaffle == 0) {
-			$prevTrack = "AND `ID` < '".$prev."' ORDER BY `ID` DESC";
+			$prevTrack = "AND `ID` > '".$prev."' ORDER BY `ID`";
 		}
 		
 		if($songID == '') {
@@ -196,6 +196,8 @@ class yamusic extends module {
 		} else {
 			$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlist."' AND `OWNER` = '".$owner."' AND `SONGID` = '".$songID."' ".$nextTrack." ".$prevTrack);
 		}
+		
+		$selectMusic = array_reverse($selectMusic);
 		
 		//Выгрузим музыку пользователя
 		//Заготовка для массива
@@ -288,7 +290,8 @@ class yamusic extends module {
 			
 			return 'dislike';
 		}
-		
+		//Формируем новый плейлист
+		$this->generatePlaylistM3U('-1'.$owner, $owner);
 	}
 	
 	function loadUserMusic($userToken, $userUID, $playlistID, $newOwner = false) {
@@ -367,7 +370,7 @@ class yamusic extends module {
 			mkdir(DIR_MODULES.$this->name.'/m3u8/', 0777, true);
 		}
 		
-		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."'");
+		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."' ORDER BY `ID` DESC");
 		
 $string = '#EXTM3U
 ';

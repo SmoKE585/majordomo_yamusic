@@ -98,6 +98,9 @@ $class->getConfig();
 						
 						$('#backgroundCoverBlur').attr('style', 'position: absolute;background-image: url('+responce[0].COVER_SIZED+');-webkit-filter: blur(15px);-moz-filter: blur(15px);filter: blur(15px);background-size: cover;background-position: center center;background-repeat: no-repeat;height: 100%;width: 100%;bottom: 0;right: 0;');
 						$('#backgroundCoverBlur').show();
+						
+						//Каждую секунду изменяет значение бекгроунд
+						var timerShowTrackTime = setInterval(function() { trackListInfo() }, 1000);
 					})
 
 				},
@@ -105,6 +108,15 @@ $class->getConfig();
 					showNoty('error', 'Ошибка получения треков =( Музыки не будет...');
 				}
 			});			
+		}
+		
+		function trackListInfo() {
+			allTrackTime = Math.round($('#musicPlayer').get(0).duration);
+			nowTrackTime = Math.round($('#musicPlayer').get(0).currentTime);
+			
+			countNowTime = nowTrackTime/allTrackTime*100;
+
+			$('#playerTimeLine').attr('style', 'margin-top: 340px;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 20px;background: url(/templates/yamusic/img/yellow_back_player.png);background-size: '+countNowTime+'% auto;background-color: #ffffff;background-repeat: repeat-y;');
 		}
 		
 		function nextPlayMusic() {
@@ -140,6 +152,7 @@ $class->getConfig();
 			$('#songName').html('');
 			$('#artistsName').html('');
 			$('#coverSong').attr('src', '/img/modules/yamusic.png');
+			$('#playerTimeLine').attr('style', 'margin-top: 340px;background: white;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 20px;');
 		}
 		
 		function shaffleMusicTrack() {
@@ -172,7 +185,7 @@ $class->getConfig();
 		
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
-				<div class="row" style="margin-top: 340px;background: white;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 20px;">
+				<div class="row" id="playerTimeLine" style="margin-top: 340px;background: white;border-radius: 0.25rem !important;border: 20px solid #ffcc00;width: 100%;margin-right: 0px;margin-left: 0px;padding: 20px;">
 					<div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12" style="padding: 0px;">
 						<div style="float: left;">
 							<img id="coverSong" src="/img/modules/yamusic.png" style="width: 100px;">

@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '5.0';
+		$this->version = '5.1';
 		$this->checkInstalled();
 	}
 
@@ -173,7 +173,7 @@ class yamusic extends module {
 	}
 	
 	function generateTrack($playlist, $owner, $songID = '', $count = 1, $shaffle = 0, $next = '', $prev = '', $sizeCover = '200x200') {
-		if(empty($playlist) || empty($owner)) die(); 
+		if(empty($playlist) || empty($owner)) die('Error!'); 
 		
 		if($shaffle >= 2) $shaffle = 0; 
 		if($count >= 11) $count = 10;
@@ -185,10 +185,10 @@ class yamusic extends module {
 		
 		if($next != '' && $prev == '' && $shaffle == 0) {
 			$nextTrack = "AND `ID` < '".$next."' ORDER BY `ID` DESC";
-		}
-		
-		if($prev != '' && $next == '' && $shaffle == 0) {
+		} else if($prev != '' && $next == '' && $shaffle == 0) {
 			$prevTrack = "AND `ID` > '".$prev."' ORDER BY `ID`";
+		} else if($shaffle == 0) {
+			$nextTrack = "ORDER BY `ID` DESC";
 		}
 		
 		if($songID == '') {
@@ -602,8 +602,14 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 			}
 			
 			if($this->mode == 'test') {
-				$this->generatePlaylistM3U('-141897924', '41897924');
+				require_once(DIR_MODULES.$this->name.'/client.php');
+				$newDOM = new Client($loadUserInfo['TOKEN']);
 				
+				$vwev = $newDOM->rotorStationGenreTracks('pop');
+				
+				echo '<pre>';
+				var_dump($vwev);
+				die();
 			}
 			
 			if(empty($this->mode)) $this->playlistID = '-1'.$loadUserInfo['UID'];

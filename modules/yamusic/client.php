@@ -601,7 +601,16 @@ class Client {
 
         return $response;
     }
+	
+	public function rotorStationTracks($station, $settings2 = true, $queue) {
+		
+        $url = $this->baseUrl."/rotor/station/$genre/tracks";
 
+        $response = json_decode($this->get($url))->result;
+
+        return $response;
+    }
+	
     /**
      * TODO: Описание функции
      *
@@ -633,7 +642,7 @@ class Client {
         if ($trackId != null) {
             $data['trackId'] = $trackId;
         }
-
+				
         $response = json_decode($this->post($url, $data))->result;
 
         return $response;

@@ -21,7 +21,11 @@ $class = new yamusic();
 
 $array = $class->generateTrack($playlistID, $owner, $songID);
 
+$head = get_headers($array[0]['LINK'],1);
+
 header('Content-Type: audio/mpeg');
+header('Content-Length: '.$head["Content-Length"]);
+header('X-Data-Size: '.$head["X-Data-Size"]);
 header('Cache-Control: no-cache');
 
 readfile($array[0]['LINK']);

@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '5.2';
+		$this->version = '5.3';
 		$this->checkInstalled();
 	}
 
@@ -679,7 +679,7 @@ $string .= 'http://'.$loginString.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.p
 				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
 				$out['LOADPLAYLISTDONE'] = 1;
 			}
-						
+			
 			if(empty($this->mode)) $this->playlistID = '-1'.$loadUserInfo['UID'];
 				
 			if($this->mode == 'playlistOnDay') {
@@ -764,8 +764,22 @@ $string .= 'http://'.$loginString.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.p
 				}
 			}
 			
+			if(!empty($this->config['TERMINAL_POTOK_TYPE'])) {
+				$out['TERMINAL_POTOK_TYPE'] = $this->config['TERMINAL_POTOK_TYPE'];
+			} else {
+				$this->config['TERMINAL_POTOK_TYPE'] = 'playlist';
+				$out['TERMINAL_POTOK_TYPE'] = $this->config['TERMINAL_POTOK_TYPE'];
+				$this->saveConfig();
+			}
+			
 			if(is_file(DIR_MODULES.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u')) {
-				$out['FULL_PATH_FOR_PLAYLIST_M3U'] = 'http://'.$_SERVER["SERVER_ADDR"].'/modules/'.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u';
+				if($this->config['TERMINAL_POTOK_TYPE'] == 'playlist') {
+					$out['FULL_PATH_FOR_PLAYLIST_M3U'] = 'http://'.$_SERVER["SERVER_ADDR"].'/modules/'.$this->name.'/m3u8/pl_'.$out['PLAYLIST_CURRENT'].'_'.$loadUserInfo['UID'].'.m3u';
+				} else {
+					$class->config['PLAY_PAGE_'.$out['PLAYLIST_CURRENT'].'_CURRENT_PLAY'] = 0;
+					$out['FULL_PATH_FOR_PLAYLIST_M3U'] = 'http://'.$_SERVER["SERVER_ADDR"].'/modules/'.$this->name.'/play.php?playlist='.$out['PLAYLIST_CURRENT'].'&owner='.$loadUserInfo['UID'].'';
+					$this->saveConfig();
+				}
 			} else {
 				$out['FULL_PATH_FOR_PLAYLIST_M3U'] = '';
 			}

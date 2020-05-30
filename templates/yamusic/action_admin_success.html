@@ -156,9 +156,21 @@
 			});			
 		}
 		
+		function potokType(value) {
+			$.getJSON({
+				url: '/modules/yamusic/ajax.php?action=potokType&type='+value,
+				success: function(responce) {
+					window.location = "/admin.php?md=panel&inst=&action=yamusic";
+				},
+				error: function(responce) {
+					alert('Ошибка AJAX - potokType');
+				}
+			});			
+		}
+		
 		function sendOnTerminal(value, terminalName) {
 			$.getJSON({
-				url: '/modules/yamusic/ajax.php?action=sendOnTerminal&pl='+encodeURI(value)+'&terminal='+terminalName,
+				url: '/modules/yamusic/ajax.php?action=sendOnTerminal&pl='+encodeURIComponent(value)+'&terminal='+terminalName,
 				success: function(responce) {
 					if(responce.responce == 'OK') {
 						$('#testBtnTerminal').html('<i class="las la-play-circle"></i> Запрос отправлен на <span id="terminalNameTest">'+terminalName+'</span>!');
@@ -587,6 +599,17 @@
 					</div>
 					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
 						<input type="text" id="terminalName" value="[#MAIN_TERMINAL#]" style="outline: none;border: 1px solid gray;width: 100%;text-align: center;border-radius: 5px;font-weight: bold;background: #f7f7f7;">
+					</div>
+				</div>
+				<div class="row" style="margin-bottom: 15px;">
+					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
+						Тип потока:
+					</div>
+					<div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12" style="">
+						<select style="vertical-align: text-bottom;width: 100%;padding: 2px;background: #f7f7f7;border-radius: 5px;" id="streamType" onChange="potokType($(this).val());">
+							<option value="playlist" [#if TERMINAL_POTOK_TYPE == 'playlist'#]selected readonly[#endif#]>Плейлист .m3u</option>
+							<option value="onepage" [#if TERMINAL_POTOK_TYPE == 'onepage'#]selected readonly[#endif#]>Единый поток, без плейлиста</option>
+						</select>
 					</div>
 				</div>
 				<div class="row" style="margin-bottom: 15px;">

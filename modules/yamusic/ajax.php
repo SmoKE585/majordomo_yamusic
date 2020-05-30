@@ -61,6 +61,16 @@ if($_GET['action'] == 'saveTerminal') {
 	$class->saveConfig();
 }
 
+if($_GET['action'] == 'potokType') {
+	$type = strip_tags($_GET['type']);
+	
+	$class = new yamusic();
+	
+	$class->getConfig();
+	$class->config['TERMINAL_POTOK_TYPE'] = $type;
+	$class->saveConfig();
+}
+
 if($_GET['action'] == 'sendOnTerminal') {
 	$playlist = urldecode(strip_tags($_GET['pl']));
 	$terminal = urldecode(strip_tags($_GET['terminal']));

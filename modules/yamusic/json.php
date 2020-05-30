@@ -26,5 +26,16 @@ if($_GET['mode'] == 'track') {
 	echo json_encode($array);
 }
 
+if($_GET['mode'] == 'track_direct') {
+	$songID = $_GET['songID'];
+	$playlist = $_GET['playlist'];
+	$owner = $_GET['owner'];
+	
+	
+	$class = new yamusic();
+	$array = $class->generateTrackDirect($playlist, $owner, $songID);
+	echo json_encode($array);
+}
+
 
 ?>

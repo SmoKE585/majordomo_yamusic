@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '5.1';
+		$this->version = '5.2';
 		$this->checkInstalled();
 	}
 
@@ -210,6 +210,26 @@ class yamusic extends module {
 		return $selectMusic;
 	}
 	
+	function generateTrackDirect($playlist, $owner, $songID) {
+		if(empty($playlist) || empty($owner) || empty($songID)) die('Error!'); 
+		
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		
+		$trackInfo = $newDOM->tracks($songID);
+		
+		$selectMusic[0]['SONGID'] = $songID;
+		$selectMusic[0]['PLAYLISTID'] = $playlist;
+		$selectMusic[0]['OWNER'] = $owner;
+		$selectMusic[0]['NAMESONG'] = $trackInfo[0]->title;
+		$selectMusic[0]['ARTISTS'] = $trackInfo[0]->artists[0]->name;
+		$selectMusic[0]['LINK'] = $this->getDirectLink($songID, $loadUserInfo['TOKEN']);
+		$selectMusic[0]['DURATION'] = $this->microTimeConvert($trackInfo[0]->durationMs, 'H:i:s');
+		$selectMusic[0]['COVER'] = 'https://'.str_ireplace("%%", '200x200', $trackInfo[0]->coverUri);
+		
+		return $selectMusic;
+	}
+	
 	function loadUserPlaylist($userToken, $userUID) {
 		//Очистим таблицы
 		SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."'");
@@ -294,6 +314,12 @@ class yamusic extends module {
 		$this->generatePlaylistM3U('-1'.$owner, $owner);
 	}
 	
+	function vd($data) {
+		echo '<pre>';
+		var_dump($data);
+		die('--------- КОНЕЦ ВЫВОДА ---------');
+	}
+	
 	function loadUserMusic($userToken, $userUID, $playlistID, $newOwner = false) {
 		//Загрузка МУЗЫКИ юзера из плейлиста
 		require_once(DIR_MODULES.$this->name.'/client.php');
@@ -321,8 +347,36 @@ class yamusic extends module {
 				
 				SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($getCover[0]->title)."','".dbSafe($getCover[0]->artists[0]->name)."','https://".dbSafe($cover)."200x200','".dbSafe($getCover[0]->durationMs)."','".time()."');");
 			}
+		} else if($playlistID == 'chart'.$newOwner) {
+			$chart = json_decode(json_encode($this->chartLoad($userToken)), true);
+			
+			if($newOwner != false) {
+				SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$newOwner."' AND `PLAYLISTID` = '".$playlistID."'");
+			} else {
+				SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+			}
+			
+			
+			foreach(array_reverse($chart["TRACKS"]) as $key => $value) {
+				//Получим ID треков
+				$idTrack = $value["id"];
+				//Получим обложку и название
+
+				//Если нет инфы о треке - пропускае, он удален
+				if(!$value["track"]["durationMs"]) continue;
+				
+				$cover = 'https://'.str_ireplace("%%", '200x200', $value["track"]["coverUri"]);
+				
+				if($newOwner != false) $userUID = $newOwner;
+				
+				SQLExec("INSERT INTO `yamusic_music` (`SONGID`,`PLAYLISTID`,`OWNER`,`NAMESONG`,`ARTISTS`,`COVER`,`DURATION`,`ADDTIME`) VALUES ('".dbSafe($idTrack)."','".dbSafe($playlistID)."','".dbSafe($userUID)."','".dbSafe($value["track"]["title"])."','".dbSafe($value["track"]["artists"][0]["name"])."','".dbSafe($cover)."','".dbSafe($value["track"]["durationMs"])."','".time()."');");
+			}
 		} else {
-			SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+			if($newOwner != false) {
+				SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$newOwner."' AND `PLAYLISTID` = '".$playlistID."'");
+			} else {
+				SQLExec("DELETE FROM `yamusic_music` WHERE `OWNER` = '".$userUID."' AND `PLAYLISTID` = '".$playlistID."'");
+			}
 			
 			$loadUserMusic = $newDOM->usersPlaylists($playlistID, $userUID);
 			$loadUserMusic = $loadUserMusic->result[0]->tracks;
@@ -363,11 +417,36 @@ class yamusic extends module {
 		return $link;
 	}
 	
+	//выгружаем чарт
+	function chartLoad($userToken, $type = 'russia') {
+		//Запрашиваем чарт
+		require_once(DIR_MODULES.$this->name.'/client.php');
+		$newDOM = new Client($userToken);
+		
+		$chart = $newDOM->chart()->chart;
+
+		$chartTracks['TRACKS'] = $chart->tracks;
+		$chartTracks['YAOWNER'] = $chart->uid;
+		$chartTracks['PLAYLISTID'] = $chart->kind;
+		
+		return $chartTracks;
+		
+	}
+	
 	function generatePlaylistM3U($playlistID, $owner) {
 		if(!$playlistID || !$owner) return;
 		
 		if(!is_dir(DIR_MODULES.$this->name.'/m3u8/')) {
 			mkdir(DIR_MODULES.$this->name.'/m3u8/', 0777, true);
+		}
+		
+		//Для тех, кто ставит пароли
+		if(defined('EXT_ACCESS_USERNAME') && defined('EXT_ACCESS_PASSWORD')) {
+			$login = EXT_ACCESS_USERNAME;
+			$pass = EXT_ACCESS_PASSWORD;
+			$loginString = $login.':'.$pass.'@';
+		} else {
+			$loginString = '';
 		}
 		
 		$selectMusic = SQLSelect("SELECT * FROM `yamusic_music` WHERE `PLAYLISTID` = '".$playlistID."' AND `OWNER` = '".$owner."' ORDER BY `ID` DESC");
@@ -378,7 +457,7 @@ $string = '#EXTM3U
 		foreach($selectMusic as $key => $value) {
 $string .= '#EXTINF:0, '.$value['ARTISTS'].' - '.$value['NAMESONG'].'
 ';
-$string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID='.$playlistID.'&owner='.$owner.'&songID='.$value['SONGID'].'
+$string .= 'http://'.$loginString.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID='.$playlistID.'&owner='.$owner.'&songID='.$value['SONGID'].'
 ';
 		}
 		
@@ -600,18 +679,7 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 				$this->loadUserPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID']);
 				$out['LOADPLAYLISTDONE'] = 1;
 			}
-			
-			if($this->mode == 'test') {
-				require_once(DIR_MODULES.$this->name.'/client.php');
-				$newDOM = new Client($loadUserInfo['TOKEN']);
-				
-				$vwev = $newDOM->rotorStationGenreTracks('pop');
-				
-				echo '<pre>';
-				var_dump($vwev);
-				die();
-			}
-			
+						
 			if(empty($this->mode)) $this->playlistID = '-1'.$loadUserInfo['UID'];
 				
 			if($this->mode == 'playlistOnDay') {
@@ -654,6 +722,22 @@ $string .= 'http://'.$_SERVER["SERVER_ADDR"].'/modules/yamusic/pl.php?playlistID
 				($this->view_mode == 'reload') ? $needReload = true : $needReload = false;
 				$loadDataInPlaylist = $this->loadUserSpecialPlaylist($loadUserInfo['TOKEN'], $loadUserInfo['UID'], 'Тайник', $needReload);
 				$loadMusic = $this->selectMusicInDB($loadDataInPlaylist['playlistID'], $loadDataInPlaylist['playlistOwnerNew'], $loadDataInPlaylist['playlistName']);
+				
+				$out['PLAYLIST_MUSICLIST'] = $loadMusic['PLAYLIST_MUSICLIST'];
+				$out['PLAYLIST_CURRENT'] = $loadMusic['PLAYLIST_CURRENT'];
+				$out['PLAYLIST_CURRENT_NAME'] = $loadMusic['PLAYLIST_CURRENT_NAME'];
+				$out['PLAYLIST_CURRENT_SYSTEMNAME'] = $this->mode;
+				$out['TOTAL_PLAYLIST_TRACKS'] = $loadMusic['TOTAL_PLAYLIST_TRACKS'];
+				$out['TOTAL_PLAYLIST_SHOWTRACKS'] = $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'];	
+				(!$loadMusic['TOTAL_PLAYLIST_TRACKS']) ? $out['TOTAL_PLAYLIST_NEEDLOAD'] = 1 : $out['TOTAL_PLAYLIST_NEEDLOAD'] = 0;
+			} else if($this->mode == 'chart') {
+				$loadMusic = $this->selectMusicInDB('chart'.$loadUserInfo['UID'], $loadUserInfo['UID'], 'Чарт Яндекс.Музыка');
+				
+				//Запросим данные по чарту
+				if($this->view_mode == 'reload' || $loadMusic['TOTAL_PLAYLIST_SHOWTRACKS'] < 1) {
+					$this->loadUserMusic($loadUserInfo['TOKEN'], $loadUserInfo['UID'], 'chart'.$loadUserInfo['UID'], $loadUserInfo['UID']);
+					$this->redirect("?mode=chart");
+				}
 				
 				$out['PLAYLIST_MUSICLIST'] = $loadMusic['PLAYLIST_MUSICLIST'];
 				$out['PLAYLIST_CURRENT'] = $loadMusic['PLAYLIST_CURRENT'];

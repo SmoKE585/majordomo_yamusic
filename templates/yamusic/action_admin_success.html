@@ -405,6 +405,16 @@
 			$('#playlistList_[#PLAYLIST_CURRENT#]').attr('style','padding: 5px;min-height: 62px;color: white;background-color: #fcff92;');
 		});
 		</script>
+		<div class="list-group" style="margin-bottom: 10px;">
+			<a href="?mode=chart" id="playlistList_chart[#ACCOUNT_UID#]" class="list-group-item active" style="padding: 5px;min-height: 62px;background-color: #ffffff;">
+				<div style="float: left;"><img src="/templates/yamusic/img/chart.jpg" style="width: 50px;"></div>
+				<div style="padding-left: 60px;margin-top: 7px;">
+					<div class="list-group-item-heading" style="margin-bottom: 0px;color: #333;">Чарт Яндекс.Музыка</div>
+					<p class="list-group-item-text" style="font-size: 1.1rem;margin-bottom: 0px;color: #333;">Топ 100 треков</p>
+				</div>
+			</a>
+		</div>
+		
 		[#begin PLAYLIST#]
 		<div class="list-group" style="margin-bottom: 10px;">
 			<a href="?mode=loadPlayList&playlistID=[#PLAYLISTID#]" id="playlistList_[#PLAYLISTID#]" class="list-group-item active" style="padding: 5px;min-height: 62px;background-color: #ffffff;">
@@ -463,7 +473,7 @@
 				</div>
 			</div>
 		[#else TOTAL_PLAYLIST_NEEDLOAD#]
-		<h4 style="margin-bottom: 0px;">Плейлист: <b>[#PLAYLIST_CURRENT_NAME#]</b> <i class="las la-sync"></i></h4>
+		<h4 style="margin-bottom: 0px;">Плейлист: <b>[#PLAYLIST_CURRENT_NAME#]</b>
 		<p>ID плейлиста: [#PLAYLIST_CURRENT#], всего треков [#TOTAL_PLAYLIST_TRACKS#], показано [#TOTAL_PLAYLIST_SHOWTRACKS#]</p>
 		<hr>
 		<table class="table table-stripped" style="font-size: 1.2rem;">
@@ -474,7 +484,7 @@
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#ARTISTS#] - [#NAMESONG#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;">[#DURATION#]</td>
 						<td valign="middle" style="border-top: 0px;vertical-align: middle;width: 40%;text-align: right;">
-							<i id="likeIcon_[#SONGID#]" class="[#if ISLIKE == 1#]las[#else#]lar[#endif#] la-heart" onclick="like('<#ACCOUNT_TOKEN#>', '[#if ISLIKE == 1#]del[#else#]add[#endif#]', '[#SONGID#]', '[#OWNER#]');" style="font-size: 3rem;color: #f94474;vertical-align: super;"></i>
+							<i id="likeIcon_[#SONGID#]" class="[#if ISLIKE == 1#]las[#else#]lar[#endif#] la-heart" onclick="like('<#ACCOUNT_TOKEN#>', '[#if ISLIKE == 1#]del[#else#]add[#endif#]', '[#SONGID#]', '[#if CHART==1#]<#ACCOUNT_UID#>[#else#][#OWNER#][#endif#]');" style="font-size: 3rem;color: #f94474;vertical-align: super;"></i>
 							
 							<i class="las la-tv showSendOnTVAllIcon" onclick="sendOnTV($('#selectForTV').val(), '[#SONGID#]');" style="font-size: 4rem;display:none;"></i>
 							
@@ -559,7 +569,7 @@
 			<div id="playSongCommand" style="display: none;"></div>
 			<div id="shaffleMusic" style="display: none;">0</div>
 			<div id="ownerMusic" style="display: none;">[#ACCOUNT_UID#]</div>
-			<div id="playlistMusic" style="display: none;">[#PLAYLIST_CURRENT#][#ACCOUNT_UID#]</div>
+			<div id="playlistMusic" style="display: none;">[#if PLAYLIST_CURRENT_CHART == 1#][#PLAYLIST_CURRENT#][#else#][#PLAYLIST_CURRENT#][#ACCOUNT_UID#][#endif#]</div>
 		</div>
 	</div>
 </div>

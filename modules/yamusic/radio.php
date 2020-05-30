@@ -34,21 +34,30 @@ $batchId = $radio->batchId;
 (empty($_GET['id'])) ? $trackPos = 0 : $trackPos = $_GET['id'];
 $trackId = $radio->sequence[$trackPos]->track->id;
 
-$newDOM->rotorStationGenreFeedbackRadioStarted('dance');
-$newDOM->rotorStationGenreFeedback('dance', 'trackStarted', null, $batchId, $trackId);
-$newDOM->rotorStationGenreFeedback('dance', 'skip', null, $batchId, $trackId);
+$newDOM->rotorStationGenreFeedbackRadioStarted('dance', 'mobile-radio-user-'.$loadUserInfo['UID']);
+$newDOM->rotorStationGenreFeedback('dance', 'trackStarted', 'mobile-radio-user-'.$loadUserInfo['UID'], $batchId, $trackId);
+$newDOM->rotorStationGenreFeedback('dance', 'trackFinished', 'mobile-radio-user-'.$loadUserInfo['UID'], $batchId, $trackId);
 
 $newDOM->rotorStationTracks('dance', true, $trackId);
 
-$track = $newDOM->tracks($trackId);
+$radio = $newDOM->rotorStationGenreTracks('dance');
+//$track = $newDOM->tracks($trackId);
 
 
-$link = $newDOM->tracksDownloadInfo($trackId, true);
-$link = $link[0]->directLink;
+//$link = $newDOM->tracksDownloadInfo($trackId, true);
+//$link = $link[0]->directLink;
 
-//echo '<pre>';
-//var_dump($link);
+foreach($radio->sequence as $key => $value) {
+	$idtra .= '<br>KEY - '.$key.'<br>';
+	$idtra .= 'ID - '.$value->track->id.'<br>';
+	$idtra .= 'Batch - '.$radio->batchId.'<hr>';
+	$idtra .= 'Name - '.$value->track->title.'<hr>';
+}
 
+
+echo '<pre>';
+var_dump($idtra);
+die();
 
 header('Content-Type: audio/mpeg');
 header('Cache-Control: no-cache');

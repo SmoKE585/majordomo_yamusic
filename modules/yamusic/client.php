@@ -239,6 +239,20 @@ class Client {
 
         return $response;
     }
+	
+	public function chart($chart_option = 'russia') {
+        $url = $this->baseUrl."/landing3/chart";
+
+       
+        $response = json_decode($this->get($url));
+        if($response->result == null) {
+            $response = $response->error;
+        }else{
+            $response = $response->result;
+        }
+
+        return $response;
+    }
 
     /**
      * Получение жанров музыки
@@ -604,7 +618,7 @@ class Client {
 	
 	public function rotorStationTracks($station, $settings2 = true, $queue) {
 		
-        $url = $this->baseUrl."/rotor/station/$genre/tracks";
+        $url = $this->baseUrl."/rotor/station/genre:$genre/tracks";
 
         $response = json_decode($this->get($url))->result;
 

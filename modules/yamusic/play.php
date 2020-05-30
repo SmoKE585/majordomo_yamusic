@@ -25,7 +25,7 @@ if($_GET['onstart'] == 1) {
 }
 
 //Лезем в m3u файл за ссылками
-$getm3uFile = file_get_contents('/var/www/html/modules/yamusic/m3u8/pl_'.$playlistID.'_'.$owner.'.m3u');
+$getm3uFile = file_get_contents(DIR_MODULES.$class->name.'/m3u8/pl_'.$playlistID.'_'.$owner.'.m3u');
 $getm3uFile = explode('#EXTINF:0, ', $getm3uFile);
 
 $getTrackURL = [];

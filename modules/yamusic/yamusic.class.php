@@ -4,7 +4,7 @@ class yamusic extends module {
 		$this->name="yamusic";
 		$this->title="Яндекс.Музыка";
 		$this->module_category="<#LANG_SECTION_APPLICATIONS#>";
-		$this->version = '5.3';
+		$this->version = '5.4';
 		$this->checkInstalled();
 	}
 
@@ -202,7 +202,7 @@ class yamusic extends module {
 		//Выгрузим музыку пользователя
 		//Заготовка для массива
 		foreach($selectMusic as $key => $value) {
-			$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $loadUserInfo['TOKEN']);
+			$selectMusic[$key]['LINK'] = $this->getDirectLink($value['SONGID'], $owner);
 			$selectMusic[$key]['DURATION'] = $this->microTimeConvert($value['DURATION'], 'H:i:s');
 			$selectMusic[$key]['COVER_SIZED'] = str_ireplace("200x200", $sizeCover, $value['COVER']);;
 		}
@@ -223,7 +223,7 @@ class yamusic extends module {
 		$selectMusic[0]['OWNER'] = $owner;
 		$selectMusic[0]['NAMESONG'] = $trackInfo[0]->title;
 		$selectMusic[0]['ARTISTS'] = $trackInfo[0]->artists[0]->name;
-		$selectMusic[0]['LINK'] = $this->getDirectLink($songID, $loadUserInfo['TOKEN']);
+		$selectMusic[0]['LINK'] = $this->getDirectLink($songID, $owner);
 		$selectMusic[0]['DURATION'] = $this->microTimeConvert($trackInfo[0]->durationMs, 'H:i:s');
 		$selectMusic[0]['COVER'] = 'https://'.str_ireplace("%%", '200x200', $trackInfo[0]->coverUri);
 		
@@ -406,10 +406,13 @@ class yamusic extends module {
 		//$this->redirect("?mode=loadPlayList&playlistID=".$playlistID);
 	}
 	
-	function getDirectLink($songID, $userToken) {
+	function getDirectLink($songID, $owner) {
+		//Получим токен владельца трека
+		$userToken = SQLSelectOne("SELECT `TOKEN` FROM `yamusic_users` WHERE `UID` = '".$owner."'");
+		
 		//Функция выдача ссылок для json.php
 		require_once(DIR_MODULES.$this->name.'/client.php');
-		$newDOM = new Client($userToken);
+		$newDOM = new Client($userToken['TOKEN']);
 		
 		$link = $newDOM->tracksDownloadInfo($songID, true);
 		$link = $link[0]->directLink;

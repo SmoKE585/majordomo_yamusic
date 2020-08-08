@@ -125,17 +125,19 @@
 		}
 		
 		function like(token, action, id, owner) {
+			if(action == 'add') {
+				$('#trsong_'+id).attr('style', 'border: 1px solid #e7e7e7;border-radius: 10px;');
+				$('#likeIcon_'+id).attr('class', 'las la-heart');
+				$('#likeIcon_'+id).attr('onclick', "like(\'"+token+"\', \'del\', \'"+id+"\', \'"+owner+"\');");
+			} else {
+				$('#trsong_'+id).attr('style', 'opacity: 0.2;border: 1px solid #e7e7e7;border-radius: 10px;');
+				$('#likeIcon_'+id).attr('class', 'lar la-heart');
+				$('#likeIcon_'+id).attr('onclick', "like(\'"+token+"\', \'add\', \'"+id+"\', \'"+owner+"\');");
+			}
 			$.getJSON({
 				url: '/modules/yamusic/ajax.php?action=like&token='+token+'&type='+action+'&id='+id+'&owner='+owner,
 				success: function(responce) {
-					if(action == 'add') {
-						$('#likeIcon_'+id).attr('class', 'las la-heart');
-						$('#likeIcon_'+id).attr('onclick', "like(\'"+token+"\', \'del\', \'"+id+"\', \'"+owner+"\');");
-					} else {
-						$('#trsong_'+id).hide();
-						$('#likeIcon_'+id).attr('class', 'lar la-heart');
-						$('#likeIcon_'+id).attr('onclick', "like(\'"+token+"\', \'add\', \'"+id+"\', \'"+owner+"\');");
-					}
+					
 				},
 				error: function(responce) {
 					alert('Ошибка AJAX - like');
@@ -328,7 +330,7 @@
 		function nextPlayMusic() {
 			var audio = document.getElementById("musicPlayer");
 			audio.removeEventListener('ended', nextPlayMusic);
-			
+			console.log(audio);
 			$('#pausePlayMusic').hide();
 			startPlayMusic('next');
 		}
